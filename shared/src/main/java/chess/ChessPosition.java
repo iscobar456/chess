@@ -8,7 +8,19 @@ package chess;
  */
 public class ChessPosition {
 
+    public enum Row {
+        A, B, C, D, E, F, G, H
+    }
+    private final Row row;
+    private final int col;
+
     public ChessPosition(int row, int col) {
+        /* Check position bounds */
+        if (row > 7 || col > 7 || row < 0 || col < 7) {
+            throw new RuntimeException(String.format("Invalid position: row %d, column %d", row, col));
+        }
+        this.row = Row.values()[row];
+        this.col = col;
     }
 
     /**
@@ -16,7 +28,7 @@ public class ChessPosition {
      * 1 codes for the bottom row
      */
     public int getRow() {
-        throw new RuntimeException("Not implemented");
+        return row.ordinal();
     }
 
     /**
@@ -24,6 +36,6 @@ public class ChessPosition {
      * 1 codes for the left row
      */
     public int getColumn() {
-        throw new RuntimeException("Not implemented");
+        return col;
     }
 }

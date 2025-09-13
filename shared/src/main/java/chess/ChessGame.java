@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -10,29 +11,24 @@ import java.util.Collection;
  */
 public class ChessGame {
 
+    private TeamColor activeTeam;
+    private ChessBoard board;
+
     public ChessGame() {
 
     }
 
-    /**
-     * @return Which team's turn it is
-     */
     public TeamColor getTeamTurn() {
-        throw new RuntimeException("Not implemented");
+        return activeTeam;
     }
 
     /**
-     * Set's which teams turn it is
-     *
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
         throw new RuntimeException("Not implemented");
     }
 
-    /**
-     * Enum identifying the 2 possible teams in a chess game
-     */
     public enum TeamColor {
         WHITE,
         BLACK
@@ -46,7 +42,15 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece piece = board.getPiece(startPosition);
+        if (piece == null) {
+            return Collections.emptyList();
+        } else {
+            switch (piece.getPieceType()) {
+                case KING:
+
+            }
+        }
     }
 
     /**
