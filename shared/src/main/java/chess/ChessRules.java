@@ -5,7 +5,4 @@ public class ChessRules {
         return true;
     }
 
-    public List<ChessMove> getKingMoves(ChessPosition pos, ChessBoard board) {
-
-    }
 }

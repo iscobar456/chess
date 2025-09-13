@@ -16,10 +16,10 @@ public class ChessPosition {
 
     public ChessPosition(int row, int col) {
         /* Check position bounds */
-        if (row > 7 || col > 7 || row < 0 || col < 0) {
+        if (row > 8 || col > 8 || row < 1 || col < 1) {
             throw new RuntimeException(String.format("Invalid position: row %d, column %d", row, col));
         }
-        this.row = Row.values()[row];
+        this.row = Row.values()[row-1];
         this.col = col;
     }
 
@@ -28,7 +28,7 @@ public class ChessPosition {
      * 1 codes for the bottom row
      */
     public int getRow() {
-        return row.ordinal();
+        return row.ordinal()+1;
     }
 
     /**

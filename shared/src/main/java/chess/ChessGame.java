@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,12 +46,8 @@ public class ChessGame {
         ChessPiece piece = board.getPiece(startPosition);
         if (piece == null) {
             return Collections.emptyList();
-        } else {
-            switch (piece.getPieceType()) {
-                case KING:
-
-            }
         }
+        return Collections.emptyList();
     }
 
     /**
