@@ -17,11 +17,11 @@ public class ChessBoard {
     /**
      * Adds a chess piece to the chessboard
      *
-     * @param position where to add the piece to
+     * @param pos where to add the piece to
      * @param piece    the piece to add
      */
-    public void addPiece(ChessPosition position, ChessPiece piece) {
-        throw new RuntimeException("Not implemented");
+    public void addPiece(ChessPosition pos, ChessPiece piece) {
+        board[pos.getRow()][pos.getColumn()] = piece;
     }
 
     /**
@@ -32,7 +32,7 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-
+        return board[position.getRow()][position.getColumn()];
     }
 
     /**
@@ -40,6 +40,24 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        board = new ChessPiece[8][8];
+    }
+
+    public String toString() {
+        StringBuilder boardStr = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            boardStr.append("|");
+           for (int j = 0; j < 7; j++) {
+               boardStr.append(" ");
+               boardStr.append(board[i][j].toString());
+               boardStr.append(" |");
+           }
+           boardStr.append('\n');
+           if (i != 7) {
+               boardStr.append("-------------------------------");
+           }
+        }
+
+        return boardStr.toString();
     }
 }

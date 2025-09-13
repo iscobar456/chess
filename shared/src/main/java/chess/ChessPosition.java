@@ -16,7 +16,7 @@ public class ChessPosition {
 
     public ChessPosition(int row, int col) {
         /* Check position bounds */
-        if (row > 7 || col > 7 || row < 0 || col < 7) {
+        if (row > 7 || col > 7 || row < 0 || col < 0) {
             throw new RuntimeException(String.format("Invalid position: row %d, column %d", row, col));
         }
         this.row = Row.values()[row];
@@ -37,5 +37,9 @@ public class ChessPosition {
      */
     public int getColumn() {
         return col;
+    }
+
+    public String toString() {
+        return String.format("%s%d", row.toString(), col + 1);
     }
 }
