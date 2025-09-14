@@ -55,6 +55,21 @@ public class ChessPiece {
         throw new RuntimeException("Not implemented");
     }
 
+    public boolean equals(ChessPiece p) {
+        if (p == null) {
+            return false;
+        }
+        return p.getPieceType() == type && p.getTeamColor() == color;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = hash * 31 + type.hashCode();
+        hash = hash * 31 + color.hashCode();
+        return hash;
+    }
+
     public String toString() {
         return String.valueOf(
             type.toString().charAt(0) + color.compareTo(ChessGame.TeamColor.BLACK) * 32
