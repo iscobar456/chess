@@ -49,17 +49,8 @@ public class ChessGame {
             return Collections.emptyList();
         }
 
-        ChessMoveCalculator moveCalculator = new ChessMoveCalculator();
 
-        return switch (piece.getPieceType()) {
-            case KING -> moveCalculator.kingMoves(startPosition, board);
-            case ROOK -> moveCalculator.rookMoves(startPosition, board);
-            case KNIGHT -> moveCalculator.knightMoves(startPosition, board);
-            case BISHOP -> moveCalculator.bishopMoves(startPosition, board);
-            case QUEEN -> moveCalculator.queenMoves(startPosition, board);
-            case PAWN -> moveCalculator.pawnMoves(startPosition, board);
-            default -> new ArrayList<ChessMove>();
-        };
+        return piece.pieceMoves(board, startPosition);
     }
 
     /**

@@ -106,14 +106,13 @@ public class ChessBoard {
         StringBuilder boardStr = new StringBuilder();
         for (int i = 0; i < 8; i++) {
             boardStr.append("|");
-            for (int j = 0; j < 7; j++) {
-                boardStr.append(" ");
+            for (int j = 0; j < 8; j++) {
                 if (board[i][j] == null) {
                     boardStr.append(' ');
                 } else {
                     boardStr.append(board[i][j].toString());
                 }
-                boardStr.append(" |");
+                boardStr.append("|");
             }
             boardStr.append('\n');
         }

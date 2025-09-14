@@ -56,6 +56,6 @@ public class ChessPosition {
     }
 
     public String toString() {
-        return String.format("%s%d", row.toString(), col + 1);
+        return String.format("%s%d", row.toString(), col);
     }
 }

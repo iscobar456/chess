@@ -5,10 +5,15 @@ import java.util.ArrayList;
 public class ChessMoveCalculator {
 
     private final int[][] diagonalVectors = {{1,1},{1,-1},{-1,-1},{-1,1}};
-    private final int[][] orthogonalVectors = {{0,1},{1,0},{0,-1},{-1,0}};
+    private final int[][] orthogonalVectors = {{-1,0},{1,0},{0,1},{0,-1}};
     private final int[][] LVectors = {{1,2},{2,1},{2,-1},{1,-2},{-1,-2},{-2,-1},{-2,1},{-1,2}};
 
     public ChessMoveCalculator() {
+
+    }
+
+    private boolean isInBounds(int[] pos) {
+        return pos[0] > 0 && pos[0] < 9 && pos[1] > 0 && pos[1] < 9;
     }
 
     public ArrayList<ChessMove> kingMoves(ChessPosition startPos, ChessBoard board) {
@@ -23,16 +28,15 @@ public class ChessMoveCalculator {
                     startPos.getRow() + vec[0],
                     startPos.getColumn() + vec[1]
             };
-            // check bounds.
-            if (dest[0] < 1 || dest[0] > 8 || dest[1] < 1 || dest[1] > 8) {
+
+            if (isInBounds(dest)) {
+                ChessPosition movePos = new ChessPosition(dest[0], dest[1]);
+                if (board.getPiece(movePos) != null && board.getPiece(movePos).getTeamColor() == board.getPiece(startPos).getTeamColor()) {
+                    continue;
+                }
+                moves.add(new ChessMove(startPos, movePos, null));
                 continue;
             }
-            // check for team pieces.
-            ChessPosition movePos = new ChessPosition(dest[0], dest[1]);
-            if (board.getPiece(movePos).getTeamColor() == board.getPiece(startPos).getTeamColor()) {
-                continue;
-            }
-            moves.add(new ChessMove(startPos, movePos, null));
         }
 
         return moves;
@@ -41,6 +45,22 @@ public class ChessMoveCalculator {
     public ArrayList<ChessMove> rookMoves(ChessPosition startPos, ChessBoard board) {
         ArrayList<ChessMove> moves = new ArrayList<>();
 
+        for (var vec : orthogonalVectors) {
+            int[] dest = {startPos.getRow() + vec[0], startPos.getColumn() + vec[1]};
+            while (isInBounds(dest)) {
+                ChessPosition destPos = new ChessPosition(dest[0], dest[1]);
+                ChessPiece destPiece = board.getPiece(destPos);
+                if (destPiece != null) {
+                    if (destPiece.getTeamColor() != board.getPiece(startPos).getTeamColor()) {
+                        moves.add(new ChessMove(startPos, destPos, null));
+                    }
+                    break;
+                }
+                moves.add(new ChessMove(startPos, destPos, null));
+                dest[0] += vec[0];
+                dest[1] += vec[1];
+            }
+        }
 
         return moves;
     }
