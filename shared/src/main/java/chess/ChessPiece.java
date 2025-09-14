@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Represents a single chess piece
@@ -55,24 +56,23 @@ public class ChessPiece {
         throw new RuntimeException("Not implemented");
     }
 
-    public boolean equals(ChessPiece p) {
-        if (p == null) {
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return p.getPieceType() == type && p.getTeamColor() == color;
+        ChessPiece that = (ChessPiece) o;
+        return color == that.color && type == that.type;
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = hash * 31 + type.hashCode();
-        hash = hash * 31 + color.hashCode();
-        return hash;
+        return Objects.hash(color, type);
     }
 
     public String toString() {
         return String.valueOf(
-            type.toString().charAt(0) + color.compareTo(ChessGame.TeamColor.BLACK) * 32
+                (char) (type.toString().charAt(0) + ((color == ChessGame.TeamColor.BLACK) ? 1 : 0) * 32)
         );
     }
 }
