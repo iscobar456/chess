@@ -64,7 +64,7 @@ public class ChessMove {
         return "ChessMove{" +
                 "start=" + startPosition.toString() +
                 ", end=" + endPosition.toString() +
-//                ", promoteTo=" + promotionPiece +
+                ", promoteTo=" + promotionPiece +
                 '}';
     }
 }
