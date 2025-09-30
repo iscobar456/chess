@@ -89,7 +89,11 @@ public class ChessBoard {
         ChessPiece[][] newBoard = new ChessPiece[8][8];
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                newBoard[i][j] = board[i][j].copy();
+                if (board[i][j] != null) {
+                    newBoard[i][j] = board[i][j].copy();
+                } else {
+                    newBoard[i][j] = null;
+                }
             }
         }
         return new ChessBoard(newBoard);

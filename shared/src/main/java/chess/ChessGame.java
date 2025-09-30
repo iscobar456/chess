@@ -88,7 +88,7 @@ public class ChessGame {
         for (int i = 1; i < 9; i++) {
             for (int j = 1; j < 9; j++) {
                 ChessPosition pos = new ChessPosition(i,j);
-                if (board.getPiece(pos).getPieceType() == ChessPiece.PieceType.KING && board.getPiece(pos).getTeamColor() == activeTeam) {
+                if (board.getPiece(pos) != null && board.getPiece(pos).getPieceType() == ChessPiece.PieceType.KING && board.getPiece(pos).getTeamColor() == activeTeam) {
                     kingPosition = pos;
                 }
             }
@@ -108,6 +108,9 @@ public class ChessGame {
             for (int j = 1; j < 9; j++) {
                 ChessPosition pos = new ChessPosition(i,j);
                 ChessPiece piece = board.getPiece(pos);
+                if (piece == null) {
+                    continue;
+                }
                 for (var move : piece.pieceMoves(board, pos)) {
                     if (move.getEndPosition() == kingPosition) {
                         return true;
