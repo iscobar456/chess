@@ -65,11 +65,10 @@ public class ChessPiece {
             case BISHOP -> moveCalculator.bishopMoves(myPosition, board);
             case QUEEN -> moveCalculator.queenMoves(myPosition, board);
             case PAWN -> moveCalculator.pawnMoves(myPosition, board);
-            default -> new ArrayList<ChessMove>();
         };
     }
 
-    public ChessPiece clone() {
+    public ChessPiece copy() {
         return new ChessPiece(this.color, this.type);
     }
 
