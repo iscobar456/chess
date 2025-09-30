@@ -17,6 +17,10 @@ public class ChessBoard {
         
     }
 
+    public ChessBoard(ChessPiece[][] board) {
+        this.board = board;
+    }
+
     /**
      * Adds a chess piece to the chessboard
      *
@@ -36,6 +40,14 @@ public class ChessBoard {
      */
     public ChessPiece getPiece(ChessPosition position) {
         return board[position.getRow()-1][position.getColumn()-1];
+    }
+
+    public void setPiece(ChessPiece piece, ChessPosition pos) {
+        board[pos.getRow()-1][pos.getColumn()-1] = piece;
+    }
+
+    public void removePiece(ChessPosition pos) {
+        board[pos.getRow()-1][pos.getColumn()-1] = null;
     }
 
     public ChessPiece[][] getBoard() {
@@ -72,6 +84,16 @@ public class ChessBoard {
         for (int i = 0; i < 8; i++) {
             addPiece(new ChessPosition(7,i+1), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
         }
+    }
+
+    public ChessBoard copy() {
+        ChessPiece[][] newBoard = new ChessPiece[8][8];
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                newBoard[i][j] = board[i][j].clone();
+            }
+        }
+        return new ChessBoard(board);
     }
 
     public boolean equals(Object o) {

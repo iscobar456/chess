@@ -69,6 +69,10 @@ public class ChessPiece {
         };
     }
 
+    public ChessPiece clone() {
+        return new ChessPiece(this.color, this.type);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
