@@ -10,19 +10,16 @@ import java.util.Objects;
  */
 public class ChessPosition {
 
-    public enum Row {
-        A, B, C, D, E, F, G, H
-    }
-    private final Row row;
+    private final int row;
     private final int col;
 
     public ChessPosition(int row, int col) {
-        /* Check position bounds */
-        if (row > 8 || col > 8 || row < 1 || col < 1) {
-            throw new RuntimeException(String.format("Invalid position: row %d, column %d", row, col));
-        }
-        this.row = Row.values()[row-1];
+        this.row = row;
         this.col = col;
+    }
+
+    public boolean isInBounds() {
+        return row > 0 && row < 9 && col > 0 && col < 9;
     }
 
     /**
@@ -30,7 +27,7 @@ public class ChessPosition {
      * 1 codes for the bottom row
      */
     public int getRow() {
-        return row.ordinal()+1;
+        return row;
     }
 
     /**
@@ -47,7 +44,7 @@ public class ChessPosition {
             return false;
         }
         ChessPosition that = (ChessPosition) o;
-        return col == that.col && row == that.row;
+        return row == that.row && col == that.col;
     }
 
     @Override
@@ -55,7 +52,11 @@ public class ChessPosition {
         return Objects.hash(row, col);
     }
 
+    @Override
     public String toString() {
-        return String.format("%s%d", row.toString(), col);
+        return "ChessPosition{" +
+                "row=" + row +
+                ", col=" + col +
+                '}';
     }
 }

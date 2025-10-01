@@ -1,6 +1,5 @@
 package chess;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -12,9 +11,16 @@ import java.util.Objects;
  */
 public class ChessPiece {
 
+    private ChessGame.TeamColor color;
+    private PieceType type;
+
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         color = pieceColor;
         this.type = type;
+    }
+
+    public ChessPiece copy() {
+        return new ChessPiece(this.color, this.type);
     }
 
     /**
@@ -28,9 +34,6 @@ public class ChessPiece {
         ROOK,
         PAWN
     }
-
-    private final ChessGame.TeamColor color;
-    private final PieceType type;
 
     /**
      * @return Which team this chess piece belongs to
@@ -54,22 +57,7 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessMoveCalculator moveCalculator = new ChessMoveCalculator();
-
-        System.out.println(board.toString());
-        System.out.println(myPosition.toString());
-        return switch (type) {
-            case KING -> moveCalculator.kingMoves(myPosition, board);
-            case ROOK -> moveCalculator.rookMoves(myPosition, board);
-            case KNIGHT -> moveCalculator.knightMoves(myPosition, board);
-            case BISHOP -> moveCalculator.bishopMoves(myPosition, board);
-            case QUEEN -> moveCalculator.queenMoves(myPosition, board);
-            case PAWN -> moveCalculator.pawnMoves(myPosition, board);
-        };
-    }
-
-    public ChessPiece copy() {
-        return new ChessPiece(this.color, this.type);
+        return ChessMoveCalculator.getPieceMoves(board, myPosition, type, color);
     }
 
     @Override
@@ -77,8 +65,8 @@ public class ChessPiece {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ChessPiece that = (ChessPiece) o;
-        return color == that.color && type == that.type;
+        ChessPiece piece = (ChessPiece) o;
+        return color == piece.color && type == piece.type;
     }
 
     @Override

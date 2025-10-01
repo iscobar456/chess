@@ -57,7 +57,7 @@ public class ChessGame {
             if (!isInCheck(activeTeam)) {
                 validMoves.add(move);
             }
-            setBoard(originalBoard);
+            setBoard(originalBoard.copy());
         }
 
         return validMoves;
@@ -75,22 +75,27 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        movePiece(move);
-        if (activeTeam == TeamColor.BLACK) {
-            setTeamTurn(TeamColor.WHITE);
-        } else {
-            setTeamTurn(TeamColor.BLACK);
+        if (board.getPiece(move.getStartPosition()).getTeamColor() != activeTeam) {
+            throw new InvalidMoveException("Out of turn move");
         }
+        var valMoves = validMoves(move.getStartPosition());
+        if (valMoves.contains(move)) {
+            movePiece(move);
+            if (move.getPromotionPiece() != null) {
+                board.setPiece(new ChessPiece(activeTeam, move.getPromotionPiece()), move.getEndPosition());
+            }
+        } else {
+            throw new InvalidMoveException(move.toString());
+        }
+        System.out.println(board.toString());
+        setTeamTurn(activeTeam == TeamColor.BLACK ? TeamColor.WHITE : TeamColor.BLACK);
     }
 
     private ChessPosition getKingPosition() {
         ChessPosition kingPosition = null;
-        for (int i = 1; i < 9; i++) {
-            for (int j = 1; j < 9; j++) {
-                ChessPosition pos = new ChessPosition(i,j);
-                if (board.getPiece(pos) != null && board.getPiece(pos).getPieceType() == ChessPiece.PieceType.KING && board.getPiece(pos).getTeamColor() == activeTeam) {
-                    kingPosition = pos;
-                }
+        for (var pos : board.getPiecePositions()) {
+            if (board.getPiece(pos).getPieceType() == ChessPiece.PieceType.KING && board.getPiece(pos).getTeamColor() == activeTeam) {
+                kingPosition = pos;
             }
         }
         return kingPosition;
@@ -104,17 +109,11 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition kingPosition = getKingPosition();
-        for (int i = 1; i < 9; i++) {
-            for (int j = 1; j < 9; j++) {
-                ChessPosition pos = new ChessPosition(i,j);
-                ChessPiece piece = board.getPiece(pos);
-                if (piece == null) {
-                    continue;
-                }
-                for (var move : piece.pieceMoves(board, pos)) {
-                    if (move.getEndPosition() == kingPosition) {
-                        return true;
-                    }
+        for (var pos : board.getPiecePositions()) {
+            ChessPiece piece = board.getPiece(pos);
+            for (var move : piece.pieceMoves(board, pos)) {
+                if (move.getEndPosition() == kingPosition) {
+                    return true;
                 }
             }
         }
@@ -129,12 +128,9 @@ public class ChessGame {
      */
     public boolean isInCheckmate(TeamColor teamColor) {
         boolean hasValidMoves = false;
-        for (int i = 1; i < 9; i++) {
-            for (int j = 1; j < 9; j++) {
-                ChessPosition pos = new ChessPosition(i, j);
-                if (!validMoves(pos).isEmpty()) {
-                    hasValidMoves = true;
-                }
+        for (var pos : board.getPiecePositions()) {
+            if (!validMoves(pos).isEmpty()) {
+                hasValidMoves = true;
             }
         }
         return isInCheck(activeTeam) && !hasValidMoves;
@@ -149,12 +145,9 @@ public class ChessGame {
      */
     public boolean isInStalemate(TeamColor teamColor) {
         boolean hasValidMoves = false;
-        for (int i = 1; i < 9; i++) {
-            for (int j = 1; j < 9; j++) {
-                ChessPosition pos = new ChessPosition(i, j);
-                if (!validMoves(pos).isEmpty()) {
-                    hasValidMoves = true;
-                }
+        for (var pos : board.getPiecePositions()) {
+            if (!validMoves(pos).isEmpty()) {
+                hasValidMoves = true;
             }
         }
         return !isInCheck(activeTeam) && !hasValidMoves;

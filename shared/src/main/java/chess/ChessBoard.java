@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -99,6 +100,20 @@ public class ChessBoard {
         return new ChessBoard(newBoard);
     }
 
+    public ArrayList<ChessPosition> getPiecePositions() {
+        ArrayList<ChessPosition> piecePositions = new ArrayList<>();
+        for (int i = 1; i < 9; i++) {
+            for (int j = 1; j < 9; j++) {
+                ChessPosition pos = new ChessPosition(i, j);
+                ChessPiece piece = getPiece(pos);
+                if (piece != null) {
+                    piecePositions.add(pos);
+                }
+            }
+        }
+        return piecePositions;
+    }
+
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
             return false;
@@ -129,8 +144,10 @@ public class ChessBoard {
 
     public String toString() {
         StringBuilder boardStr = new StringBuilder();
+        boardStr.append("   1 2 3 4 5 6 7 8\n");
         for (int i = 0; i < 8; i++) {
-            boardStr.append("|");
+            boardStr.append(i+1);
+            boardStr.append(" |");
             for (int j = 0; j < 8; j++) {
                 if (board[i][j] == null) {
                     boardStr.append(' ');
