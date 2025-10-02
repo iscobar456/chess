@@ -87,7 +87,7 @@ public class ChessMoveCalculator {
 
         if (color == ChessGame.TeamColor.WHITE) {
             ChessPosition forward = addVectPosition(whiteForward, pos);
-            if (isEmpty(board, forward)) {
+            if (forward.isInBounds() && isEmpty(board, forward)) {
                 moves.add(new ChessMove(pos, forward, null));
                 if (pos.getRow() == 2) {
                     ChessPosition doubleForward = addVectPosition(whiteForward, forward);
@@ -104,7 +104,7 @@ public class ChessMoveCalculator {
             }
         } else {
             ChessPosition forward = addVectPosition(blackForward, pos);
-            if (isEmpty(board, forward)) {
+            if (forward.isInBounds() && isEmpty(board, forward)) {
                 moves.add(new ChessMove(pos, forward, null));
                 if (pos.getRow() == 7) {
                     ChessPosition doubleForward = addVectPosition(blackForward, forward);
