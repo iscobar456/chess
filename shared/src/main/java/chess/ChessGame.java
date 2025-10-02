@@ -98,15 +98,7 @@ public class ChessGame {
         setTeamTurn(activeTeam == TeamColor.BLACK ? TeamColor.WHITE : TeamColor.BLACK);
     }
 
-    private ChessPosition getKingPosition(TeamColor color) {
-        ChessPosition kingPosition = null;
-        for (var pos : board.getPiecePositions()) {
-            if (board.getPiece(pos).getPieceType() == ChessPiece.PieceType.KING && board.getPiece(pos).getTeamColor() == color) {
-                kingPosition = pos;
-            }
-        }
-        return kingPosition;
-    }
+
 
     /**
      * Determines if the given team is in check
@@ -115,7 +107,7 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        ChessPosition kingPosition = getKingPosition(teamColor);
+        ChessPosition kingPosition = board.getKingPosition(teamColor);
         for (var pos : board.getPiecePositions()) {
             ChessPiece piece = board.getPiece(pos);
             for (var move : piece.pieceMoves(board, pos)) {

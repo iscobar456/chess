@@ -100,6 +100,16 @@ public class ChessBoard {
         return new ChessBoard(newBoard);
     }
 
+    public ChessPosition getKingPosition(ChessGame.TeamColor color) {
+        ChessPosition kingPosition = null;
+        for (var pos : getPiecePositions()) {
+            if (getPiece(pos).getPieceType() == ChessPiece.PieceType.KING && getPiece(pos).getTeamColor() == color) {
+                kingPosition = pos;
+            }
+        }
+        return kingPosition;
+    }
+
     public ArrayList<ChessPosition> getPiecePositions() {
         ArrayList<ChessPosition> piecePositions = new ArrayList<>();
         for (int i = 1; i < 9; i++) {
