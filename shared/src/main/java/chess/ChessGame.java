@@ -82,7 +82,7 @@ public class ChessGame {
         if (board.getPiece(move.getStartPosition()) == null) {
             throw new InvalidMoveException("No piece");
         }
-        if (board.getPiece(move.getStartPosition()).getTeamColor() != activeTeam) {
+        if (!isTeam(move.getStartPosition(), activeTeam)) {
             throw new InvalidMoveException("Out of turn move");
         }
         var valMoves = validMoves(move.getStartPosition());
@@ -96,6 +96,10 @@ public class ChessGame {
         }
         System.out.println(board.toString());
         setTeamTurn(activeTeam == TeamColor.BLACK ? TeamColor.WHITE : TeamColor.BLACK);
+    }
+
+    private boolean isTeam(ChessPosition pos, TeamColor color) {
+        return board.getPiece(pos).getTeamColor() == color;
     }
 
     /**
@@ -124,7 +128,7 @@ public class ChessGame {
     public boolean isInCheckmate(TeamColor teamColor) {
         boolean hasValidMoves = false;
         for (var pos : board.getPiecePositions()) {
-            if (board.getPiece(pos).getTeamColor() != teamColor) continue;
+            if (!isTeam(pos, teamColor)) continue;
             if (!validMoves(pos).isEmpty()) {
                 hasValidMoves = true;
                 break;
