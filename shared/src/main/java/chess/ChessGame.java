@@ -98,8 +98,6 @@ public class ChessGame {
         setTeamTurn(activeTeam == TeamColor.BLACK ? TeamColor.WHITE : TeamColor.BLACK);
     }
 
-
-
     /**
      * Determines if the given team is in check
      *
@@ -111,9 +109,7 @@ public class ChessGame {
         for (var pos : board.getPiecePositions()) {
             ChessPiece piece = board.getPiece(pos);
             for (var move : piece.pieceMoves(board, pos)) {
-                if (move.getEndPosition().equals(kingPosition)) {
-                    return true;
-                }
+                if (kingPosition.equals(move.getEndPosition())) return true;
             }
         }
         return false;
