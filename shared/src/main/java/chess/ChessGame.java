@@ -17,6 +17,8 @@ public class ChessGame {
 
     public ChessGame() {
         activeTeam = TeamColor.WHITE;
+        board = new ChessBoard();
+        board.resetBoard();
     }
 
     public TeamColor getTeamTurn() {
@@ -78,7 +80,6 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        System.out.println(move);
         if (board.getPiece(move.getStartPosition()) == null) {
             throw new InvalidMoveException("No piece");
         }
@@ -94,7 +95,6 @@ public class ChessGame {
         } else {
             throw new InvalidMoveException(move.toString());
         }
-        System.out.println(board.toString());
         setTeamTurn(activeTeam == TeamColor.BLACK ? TeamColor.WHITE : TeamColor.BLACK);
     }
 
@@ -147,8 +147,10 @@ public class ChessGame {
     public boolean isInStalemate(TeamColor teamColor) {
         boolean hasValidMoves = false;
         for (var pos : board.getPiecePositions()) {
+            if (!isTeam(pos, teamColor)) continue;
             if (!validMoves(pos).isEmpty()) {
                 hasValidMoves = true;
+                break;
             }
         }
         return !isInCheck(activeTeam) && !hasValidMoves;
