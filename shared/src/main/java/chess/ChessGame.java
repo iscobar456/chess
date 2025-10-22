@@ -43,7 +43,7 @@ public class ChessGame {
      *
      * @param startPosition the piece to get valid moves for
      * @return Set of valid moves for requested piece, or null if no piece at
-     * startPosition
+     *         startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessBoard originalBoard = board.copy();
@@ -114,7 +114,8 @@ public class ChessGame {
         for (var pos : board.getPiecePositions()) {
             ChessPiece piece = board.getPiece(pos);
             for (var move : piece.pieceMoves(board, pos)) {
-                if (kingPosition.equals(move.getEndPosition())) return true;
+                if (kingPosition.equals(move.getEndPosition()))
+                    return true;
             }
         }
         return false;
@@ -129,7 +130,8 @@ public class ChessGame {
     public boolean isInCheckmate(TeamColor teamColor) {
         boolean hasValidMoves = false;
         for (var pos : board.getPiecePositions()) {
-            if (!isTeam(pos, teamColor)) continue;
+            if (!isTeam(pos, teamColor))
+                continue;
             if (!validMoves(pos).isEmpty()) {
                 hasValidMoves = true;
                 break;
@@ -148,7 +150,8 @@ public class ChessGame {
     public boolean isInStalemate(TeamColor teamColor) {
         boolean hasValidMoves = false;
         for (var pos : board.getPiecePositions()) {
-            if (!isTeam(pos, teamColor)) continue;
+            if (!isTeam(pos, teamColor))
+                continue;
             if (!validMoves(pos).isEmpty()) {
                 hasValidMoves = true;
                 break;
