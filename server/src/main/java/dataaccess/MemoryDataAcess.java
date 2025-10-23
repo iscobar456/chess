@@ -5,7 +5,7 @@ import java.util.HashMap;
 public class MemoryDataAcess implements DataAccess {
     HashMap<String, UserData> users;
     HashMap<String, AuthData> auths;
-    HashMap<String, GameData> games;
+    HashMap<Integer, GameData> games;
 
     MemoryDataAcess() {
         users = new HashMap<>();
@@ -15,22 +15,22 @@ public class MemoryDataAcess implements DataAccess {
 
     @Override
     public UserData getUser(String username) {
-        return null;
+        return users.get(username);
     }
 
     @Override
     public void saveUser(UserData data) {
-
+        users.put(data.username(), data);
     }
 
     @Override
     public AuthData getAuth(String authToken) {
-        return null;
+        return auths.get(authToken);
     }
 
     @Override
     public void saveAuth(AuthData data) {
-
+        auths.put(data.authToken(), data);
     }
 
     @Override
@@ -45,21 +45,23 @@ public class MemoryDataAcess implements DataAccess {
 
     @Override
     public GameData getGame(int gameID) {
-        return null;
+        return games.get(gameID);
     }
 
     @Override
     public void saveGame(GameData data) {
-
+        games.put(data.gameID(), data);
     }
 
     @Override
     public void updateGame(GameData data) {
-
+        games.put(data.gameID(), data);
     }
 
     @Override
     public void clear() {
-
+        users = null;
+        auths = null;
+        games = null;
     }
 }
