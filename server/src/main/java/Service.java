@@ -48,10 +48,11 @@ public class Service {
             throw new UnauthorizedResponse("unauthorized");
         }
         AuthData auth = createAuth(username);
+        dataAccess.saveAuth(auth);
         return auth;
     }
 
-    public void logout(String authToken) {
+    public void deleteAuth(String authToken) {
         dataAccess.deleteAuth(authToken);
     }
 

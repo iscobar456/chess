@@ -4,6 +4,7 @@ import dataaccess.GameData;
 import dataaccess.UserData;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
+import io.javalin.http.UnauthorizedResponse;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -14,9 +15,53 @@ public class ServiceTests {
     private final Service service = new Service();
 
     @Test
+    void register() {
+        String username = "testuser00";
+        String password = "strongpassword00";
+        String email = "testuser@test.com";
+        service.clear();
+        assertThrows(BadRequestResponse.class, () -> service.register(null, null, null));
+        assertThrows(BadRequestResponse.class, () -> service.register(null, null, email));
+        assertThrows(BadRequestResponse.class, () -> service.register(null, password, null));
+        assertThrows(BadRequestResponse.class, () -> service.register(null, password, email));
+        assertThrows(BadRequestResponse.class, () -> service.register(username, null, null));
+        assertThrows(BadRequestResponse.class, () -> service.register(username, null, email));
+        assertThrows(BadRequestResponse.class, () -> service.register(username, password, null));
+        AuthData auth = service.register(username, password, email);
+        service.validateToken(auth.authToken());
+    }
+
+    @Test
+    void login() {
+        String username = "testuser00";
+        String password = "strongpassword00";
+        service.clear();
+        AuthData auth = service.register(username, password, "testuser@test.com");
+        service.deleteAuth(auth.authToken());
+
+        assertThrows(BadRequestResponse.class, () -> {service.login(null, null);});
+        assertThrows(BadRequestResponse.class, () -> {service.login(null, password);});
+        assertThrows(BadRequestResponse.class, () -> {service.login(username, null);});
+        assertThrows(UnauthorizedResponse.class, () -> {service.login(username.substring(1), password);});
+        assertThrows(UnauthorizedResponse.class, () -> {service.login(username, password.substring(1));});
+        auth = service.login(username, password);
+        service.validateToken(auth.authToken());
+    }
+
+    @Test
+    void deleteAuth() {
+        service.clear();
+        AuthData auth = service.register("testuser00", "strongpassword00", "testuser@test.com");
+        service.deleteAuth(auth.authToken());
+        assertThrows(UnauthorizedResponse.class, () -> {service.validateToken(auth.authToken());});
+    }
+
+    @Test
     void validateToken() {
         service.clear();
-        service.register("testuser00", "strongpassword00", "testuser@test.com");
+        AuthData auth = service.register("testuser00", "strongpassword00", "testuser@test.com");
+        assertDoesNotThrow(() -> {service.validateToken(auth.authToken());});
+        assertThrows(UnauthorizedResponse.class, () -> {service.validateToken(auth.authToken().substring(1));});
     }
 
     @Test
