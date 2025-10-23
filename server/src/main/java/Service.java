@@ -3,6 +3,8 @@ import dataaccess.AuthData;
 import dataaccess.DataAccess;
 import dataaccess.GameData;
 import dataaccess.MemoryDataAccess;
+import io.javalin.http.BadRequestResponse;
+import io.javalin.http.ForbiddenResponse;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +33,10 @@ public class Service {
         return dataAccess.getGames();
     }
 
+    public GameData getGame(int gameID) {
+        return dataAccess.getGame(gameID);
+    }
+
     public int createGame(String gameName) {
         int newID = 1 + dataAccess.getGames().stream().mapToInt(GameData::gameID).max().orElse(0);
         GameData game = new GameData(newID, null, null, gameName, new ChessGame());
@@ -38,8 +44,24 @@ public class Service {
         return newID;
     }
 
-    public void joinGame(int gameID, ChessGame.TeamColor color) {
-
+    public void joinGame(int gameID, String username, ChessGame.TeamColor color) {
+        GameData game = dataAccess.getGame(gameID);
+        if (game == null) {
+            throw new BadRequestResponse("invalid game id");
+        }
+        if (color == ChessGame.TeamColor.BLACK) {
+            if (game.blackUsername() != null) {
+                throw new ForbiddenResponse("already taken");
+            }
+            GameData newGame = new GameData(gameID, game.whiteUsername(), username, game.gameName(), game.game());
+            dataAccess.saveGame(newGame);
+        } else if (color == ChessGame.TeamColor.WHITE) {
+            if (game.whiteUsername() != null) {
+                throw new ForbiddenResponse("already taken");
+            }
+            GameData newGame = new GameData(gameID, username, game.blackUsername(), game.gameName(), game.game());
+            dataAccess.saveGame(newGame);
+        }
     }
 
     public void clear() {
