@@ -1,32 +1,66 @@
 import chess.ChessGame;
-import dataaccess.AuthData;
-import dataaccess.DataAccess;
-import dataaccess.GameData;
-import dataaccess.MemoryDataAccess;
+import dataaccess.*;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
+import io.javalin.http.UnauthorizedResponse;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.UUID;
 
 public class Service {
     // I've made this public for now. Will change later.
     public MemoryDataAccess dataAccess = new MemoryDataAccess();
 
     public AuthData register(String username, String password, String email) {
-        return null;
+        if (username == null) {
+            throw new BadRequestResponse("must provide username");
+        } else if (password == null) {
+            throw new BadRequestResponse("must provide password");
+        } else if (email == null) {
+            throw new BadRequestResponse("must provide email");
+        }
+
+        UserData user = dataAccess.getUser(username);
+        if (user != null) {
+            throw new ForbiddenResponse("username already taken");
+        }
+
+        user = new UserData(username, password, email);
+        dataAccess.saveUser(user);
+        AuthData auth = createAuth(username);
+        dataAccess.saveAuth(auth);
+        return auth;
+    }
+
+    public AuthData createAuth(String username) {
+        String authToken = UUID.randomUUID().toString();
+        return new AuthData(authToken, username);
     }
 
     public AuthData login(String username, String password) {
-        return null;
+        if (username == null) {
+            throw new BadRequestResponse("must provide username");
+        } else if (password == null) {
+            throw new BadRequestResponse("must provide password");
+        }
+        UserData user = dataAccess.getUser(username);
+        if (user == null || user.password() != password) {
+            throw new UnauthorizedResponse("unauthorized");
+        }
+        AuthData auth = createAuth(username);
+        return auth;
     }
 
-    public void logout() {
-
+    public void logout(String authToken) {
+        dataAccess.deleteAuth(authToken);
     }
 
-    public boolean isTokenValid(String authToken) {
-        return true;
+    public void validateToken(String authToken) {
+        AuthData auth = dataAccess.getAuth(authToken);
+        if (auth == null) {
+            throw new UnauthorizedResponse("unauthorized");
+        }
     }
 
     public ArrayList<GameData> getGames() {
@@ -38,6 +72,9 @@ public class Service {
     }
 
     public int createGame(String gameName) {
+        if (gameName == null) {
+            throw new BadRequestResponse("must provide game name");
+        }
         int newID = 1 + dataAccess.getGames().stream().mapToInt(GameData::gameID).max().orElse(0);
         GameData game = new GameData(newID, null, null, gameName, new ChessGame());
         dataAccess.saveGame(game);

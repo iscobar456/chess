@@ -14,6 +14,12 @@ public class ServiceTests {
     private final Service service = new Service();
 
     @Test
+    void validateToken() {
+        service.clear();
+        service.register("testuser00", "strongpassword00", "testuser@test.com");
+    }
+
+    @Test
     void joinGame() {
         service.clear();
         int gameID = service.createGame("game1");
