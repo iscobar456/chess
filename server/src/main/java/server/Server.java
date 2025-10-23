@@ -35,24 +35,24 @@ public class Server {
             ctx.json(gson.toJson(result));
         });
         javalin.delete("/session", ctx -> {
-            service.validateToken(ctx.header("authToken"));
-            service.deleteAuth(ctx.header("authToken"));
+            service.validateToken(ctx.header("authorization"));
+            service.deleteAuth(ctx.header("authorization"));
         });
         javalin.get("/game", ctx -> {
-            service.validateToken(ctx.header("authToken"));
+            service.validateToken(ctx.header("authorization"));
             ArrayList<GameData> games = service.getGames();
             ctx.json(gson.toJson(new GamesResponse(games)));
         });
         javalin.post("/game", ctx -> {
-            service.validateToken(ctx.header("authToken"));
+            service.validateToken(ctx.header("authorization"));
             CreateGameBody createGameBody = gson.fromJson(ctx.body(), CreateGameBody.class);
             int gameID = service.createGame(createGameBody.gameName);
             ctx.json(gson.toJson(new CreateGameResponse(gameID)));
         });
         javalin.put("/game", ctx -> {
-            service.validateToken(ctx.header("authToken"));
+            String username = service.validateToken(ctx.header("authorization"));
             JoinGameBody joinGameBody = gson.fromJson(ctx.body(), JoinGameBody.class);
-            service.joinGame(joinGameBody.gameID(), joinGameBody.username(), joinGameBody.playerColor());
+            service.joinGame(joinGameBody.gameID(), username, joinGameBody.playerColor());
         });
         javalin.delete("/db", ctx -> {
             service.clear();
@@ -74,7 +74,7 @@ public class Server {
     }
 
     record LoginBody(String username, String password) {}
-    record JoinGameBody(int gameID, String username, ChessGame.TeamColor playerColor) {}
+    record JoinGameBody(int gameID, ChessGame.TeamColor playerColor) {}
     record CreateGameBody(String gameName){}
     record GamesResponse(ArrayList<GameData> games) {}
     record CreateGameResponse(int gameID) {}

@@ -46,7 +46,7 @@ public class Service {
             throw new BadRequestResponse("must provide password");
         }
         UserData user = dataAccess.getUser(username);
-        if (user == null || user.password() != password) {
+        if (user == null || !user.password().equals(password)) {
             throw new UnauthorizedResponse("unauthorized");
         }
         AuthData auth = createAuth(username);
@@ -58,11 +58,12 @@ public class Service {
         dataAccess.deleteAuth(authToken);
     }
 
-    public void validateToken(String authToken) {
+    public String validateToken(String authToken) {
         AuthData auth = dataAccess.getAuth(authToken);
         if (auth == null) {
             throw new UnauthorizedResponse("unauthorized");
         }
+        return auth.username();
     }
 
     public ArrayList<GameData> getGames() {
@@ -100,6 +101,8 @@ public class Service {
             }
             GameData newGame = new GameData(gameID, username, game.blackUsername(), game.gameName(), game.game());
             dataAccess.saveGame(newGame);
+        } else {
+            throw new BadRequestResponse();
         }
     }
 
