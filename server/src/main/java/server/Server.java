@@ -45,14 +45,17 @@ public class Server {
         });
         javalin.post("/game", ctx -> {
             service.validateToken(ctx.header("authToken"));
+            CreateGameBody createGameBody = gson.fromJson(ctx.body(), CreateGameBody.class);
+            int gameID = service.createGame(createGameBody.gameName);
+            ctx.json(gson.toJson(new CreateGameResponse(gameID)));
+        });
+        javalin.put("/game", ctx -> {
+            service.validateToken(ctx.header("authToken"));
             JoinGameBody joinGameBody = gson.fromJson(ctx.body(), JoinGameBody.class);
             service.joinGame(joinGameBody.gameID(), joinGameBody.username(), joinGameBody.playerColor());
         });
-        javalin.put("/game", ctx -> {
-
-        });
         javalin.delete("/db", ctx -> {
-
+            service.clear();
         });
 
         javalin.exception(HttpResponseException.class, (e,ctx) -> {
@@ -72,7 +75,9 @@ public class Server {
 
     record LoginBody(String username, String password) {}
     record JoinGameBody(int gameID, String username, ChessGame.TeamColor playerColor) {}
+    record CreateGameBody(String gameName){}
     record GamesResponse(ArrayList<GameData> games) {}
+    record CreateGameResponse(int gameID) {}
     record ErrorResponse(String message) {}
 
     public int run(int desiredPort) {
