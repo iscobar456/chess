@@ -1,3 +1,5 @@
+package service;
+
 import chess.ChessGame;
 import dataaccess.*;
 import io.javalin.http.BadRequestResponse;

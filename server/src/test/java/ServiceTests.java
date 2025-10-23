@@ -6,6 +6,7 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 import org.junit.jupiter.api.Test;
+import service.Service;
 
 import java.util.ArrayList;
 
