@@ -35,6 +35,9 @@ public class Service {
     }
 
     public AuthData createAuth(String username) {
+        if (username == null) {
+            throw new BadRequestResponse("must provide username");
+        }
         String authToken = UUID.randomUUID().toString();
         return new AuthData(authToken, username);
     }

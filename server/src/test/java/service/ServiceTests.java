@@ -3,12 +3,14 @@ package service;
 import chess.ChessGame;
 import dataaccess.AuthData;
 import dataaccess.GameData;
+import dataaccess.MemoryDataAccess;
 import dataaccess.UserData;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 import org.junit.jupiter.api.Test;
 
+import java.security.KeyException;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,6 +24,16 @@ public class ServiceTests {
         String password = "strongpassword00";
         String email = "testuser@test.com";
         service.clear();
+        AuthData auth = service.register(username, password, email);
+        service.validateToken(auth.authToken());
+    }
+
+    @Test
+    void registerInvalidInput() {
+        String username = "testuser00";
+        String password = "strongpassword00";
+        String email = "testuser@test.com";
+        service.clear();
         assertThrows(BadRequestResponse.class, () -> service.register(null, null, null));
         assertThrows(BadRequestResponse.class, () -> service.register(null, null, email));
         assertThrows(BadRequestResponse.class, () -> service.register(null, password, null));
@@ -29,8 +41,6 @@ public class ServiceTests {
         assertThrows(BadRequestResponse.class, () -> service.register(username, null, null));
         assertThrows(BadRequestResponse.class, () -> service.register(username, null, email));
         assertThrows(BadRequestResponse.class, () -> service.register(username, password, null));
-        AuthData auth = service.register(username, password, email);
-        service.validateToken(auth.authToken());
     }
 
     @Test
@@ -40,14 +50,34 @@ public class ServiceTests {
         service.clear();
         AuthData auth = service.register(username, password, "testuser@test.com");
         service.deleteAuth(auth.authToken());
+        assertDoesNotThrow(() -> service.login(username, password));
+    }
 
+    @Test
+    void loginInvalidInput() {
+        String username = "testuser00";
+        String password = "strongpassword00";
+        service.clear();
+        AuthData auth = service.register(username, password, "testuser@test.com");
+        service.deleteAuth(auth.authToken());
         assertThrows(BadRequestResponse.class, () -> {service.login(null, null);});
         assertThrows(BadRequestResponse.class, () -> {service.login(null, password);});
         assertThrows(BadRequestResponse.class, () -> {service.login(username, null);});
         assertThrows(UnauthorizedResponse.class, () -> {service.login(username.substring(1), password);});
         assertThrows(UnauthorizedResponse.class, () -> {service.login(username, password.substring(1));});
-        auth = service.login(username, password);
-        service.validateToken(auth.authToken());
+    }
+
+    @Test
+    void createAuth() {
+        service.clear();
+        AuthData auth = service.createAuth("testuser00");
+        assertTrue(auth.authToken() != null);
+    }
+
+    @Test
+    void createAuthInvalid() {
+        service.clear();
+        assertThrows(BadRequestResponse.class, () -> service.createAuth(null));
     }
 
     @Test
@@ -59,10 +89,24 @@ public class ServiceTests {
     }
 
     @Test
+    void deleteAuthInvalid() {
+        service.clear();
+        AuthData auth = service.register("testuser00", "strongpassword00", "testuser@test.com");
+        service.deleteAuth(auth.authToken().substring(1));
+        assertDoesNotThrow(() -> service.validateToken(auth.authToken()));
+    }
+
+    @Test
     void validateToken() {
         service.clear();
         AuthData auth = service.register("testuser00", "strongpassword00", "testuser@test.com");
         assertDoesNotThrow(() -> {service.validateToken(auth.authToken());});
+    }
+
+    @Test
+    void validateTokenInvalid() {
+        service.clear();
+        AuthData auth = service.register("testuser00", "strongpassword00", "testuser@test.com");
         assertThrows(UnauthorizedResponse.class, () -> {service.validateToken(auth.authToken().substring(1));});
     }
 
@@ -129,12 +173,25 @@ public class ServiceTests {
     }
 
     @Test
+    void createGameNullName() {
+        service.clear();
+        assertThrows(BadRequestResponse.class, () -> service.createGame(null));
+    }
+
+    @Test
     void getGames() {
         service.clear();
         service.createGame("game1");
         service.createGame("game2");
         service.createGame("game3");
         assertEquals(3, service.getGames().size());
+    }
+
+    @Test
+    void getGamesNoDataAccess() {
+        service.dataAccess = null;
+        assertThrows(NullPointerException.class, () -> service.getGames());
+        service.dataAccess = new MemoryDataAccess();
     }
 
     @Test
@@ -155,5 +212,12 @@ public class ServiceTests {
         assertTrue(service.dataAccess.users.isEmpty());
         assertTrue(service.dataAccess.auths.isEmpty());
         assertTrue(service.dataAccess.games.isEmpty());
+    }
+
+    @Test
+    void clearNoDataAccess() {
+        service.dataAccess = null;
+        assertThrows(NullPointerException.class, () -> service.clear());
+        service.dataAccess = new MemoryDataAccess();
     }
 }
