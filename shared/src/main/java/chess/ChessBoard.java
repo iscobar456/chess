@@ -129,16 +129,16 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        ChessPiece[][] o_board = that.getBoard();
+        ChessPiece[][] oBoard = that.getBoard();
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 // handle null comparison in separate branch.
                 if (board[i][j] != null) {
-                    if (!board[i][j].equals(o_board[i][j])) {
+                    if (!board[i][j].equals(oBoard[i][j])) {
                         return false;
                     }
                 } else {
-                    if (board[i][j] != o_board[i][j]) {
+                    if (board[i][j] != oBoard[i][j]) {
                         return false;
                     }
                 }

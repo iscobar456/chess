@@ -117,9 +117,6 @@ public class ServiceTests {
 
     @Test
     void createGame() {
-//        GameData game1 = new GameData(1, "testuser00", "testuser01", "game1", new ChessGame());
-//        GameData game2 = new GameData(2, "testuser02", "testuser03", "game2", new ChessGame());
-//        GameData game3 = new GameData(3, "testuser04", "testuser05", "game3", new ChessGame());
         service.clear();
         int gameID = service.createGame("game1");
         ArrayList<GameData> games = service.getGames();

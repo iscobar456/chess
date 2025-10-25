@@ -11,6 +11,5 @@ public interface DataAccess {
     ArrayList<GameData> getGames();
     GameData getGame(int gameID);
     void saveGame(GameData data);
-    void updateGame(GameData data);
     void clear();
 }

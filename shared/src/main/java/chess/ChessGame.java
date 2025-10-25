@@ -33,17 +33,12 @@ public class ChessGame {
         activeTeam = team;
     }
 
-    public enum TeamColor {
-        WHITE,
-        BLACK
-    }
-
     /**
      * Gets a valid moves for a piece at the given location
      *
      * @param startPosition the piece to get valid moves for
      * @return Set of valid moves for requested piece, or null if no piece at
-     *         startPosition
+     * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessBoard originalBoard = board.copy();
@@ -114,8 +109,9 @@ public class ChessGame {
         for (var pos : board.getPiecePositions()) {
             ChessPiece piece = board.getPiece(pos);
             for (var move : piece.pieceMoves(board, pos)) {
-                if (kingPosition.equals(move.getEndPosition()))
+                if (kingPosition.equals(move.getEndPosition())) {
                     return true;
+                }
             }
         }
         return false;
@@ -130,8 +126,9 @@ public class ChessGame {
     public boolean isInCheckmate(TeamColor teamColor) {
         boolean hasValidMoves = false;
         for (var pos : board.getPiecePositions()) {
-            if (!isTeam(pos, teamColor))
+            if (!isTeam(pos, teamColor)) {
                 continue;
+            }
             if (!validMoves(pos).isEmpty()) {
                 hasValidMoves = true;
                 break;
@@ -150,8 +147,9 @@ public class ChessGame {
     public boolean isInStalemate(TeamColor teamColor) {
         boolean hasValidMoves = false;
         for (var pos : board.getPiecePositions()) {
-            if (!isTeam(pos, teamColor))
+            if (!isTeam(pos, teamColor)) {
                 continue;
+            }
             if (!validMoves(pos).isEmpty()) {
                 hasValidMoves = true;
                 break;
@@ -161,21 +159,21 @@ public class ChessGame {
     }
 
     /**
-     * Sets this game's chessboard with a given board
-     *
-     * @param board the new board to use
-     */
-    public void setBoard(ChessBoard board) {
-        this.board = board;
-    }
-
-    /**
      * Gets the current chessboard
      *
      * @return the chessboard
      */
     public ChessBoard getBoard() {
         return board;
+    }
+
+    /**
+     * Sets this game's chessboard with a given board
+     *
+     * @param board the new board to use
+     */
+    public void setBoard(ChessBoard board) {
+        this.board = board;
     }
 
     @Override
@@ -190,5 +188,10 @@ public class ChessGame {
     @Override
     public int hashCode() {
         return Objects.hash(activeTeam, board);
+    }
+
+    public enum TeamColor {
+        WHITE,
+        BLACK
     }
 }

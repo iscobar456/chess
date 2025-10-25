@@ -56,11 +56,6 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void updateGame(GameData data) {
-        games.put(data.gameID(), data);
-    }
-
-    @Override
     public void clear() {
         users.clear();
         auths.clear();
