@@ -7,13 +7,17 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public UserData getUser(String username) throws DataAccessException, SQLException {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("SELECT 1+1")) {
+            try (var preparedStatement = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
+                preparedStatement.setString(1, username);
                 var rs = preparedStatement.executeQuery();
                 rs.next();
-                System.out.println(rs.getInt(1));
+                UserData data = new UserData(
+                        rs.getString("username"),
+                        rs.getString("email"),
+                        rs.getString("password"));
+                return data;
             }
         }
-        return null;
     }
 
     @Override
