@@ -1,13 +1,22 @@
 package dataaccess;
 
 import chess.ChessGame;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DataAccessTests {
+    private SQLDataAccess dataAccess = new SQLDataAccess();
+
+    @AfterAll
+    void cleanup() {
+
+    }
+
     @Test
     void getGame() {
+
     }
 
     @Test
@@ -24,6 +33,7 @@ public class DataAccessTests {
 
     @Test
     void saveAuth() {
+
     }
 
     @Test
