@@ -1,9 +1,10 @@
 package dataaccess;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public interface DataAccess {
-    UserData getUser(String username);
+    UserData getUser(String username) throws DataAccessException, SQLException;
     void saveUser(UserData data);
     AuthData getAuth(String authToken);
     void saveAuth(AuthData data);
