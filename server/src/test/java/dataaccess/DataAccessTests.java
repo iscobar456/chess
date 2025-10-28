@@ -9,25 +9,36 @@ public class DataAccessTests {
     @Test
     void getGame() {
     }
+
     @Test
     void getGames() {
     }
+
     @Test
     void saveGame() {
     }
+
     @Test
     void getAuth() {
     }
+
     @Test
     void saveAuth() {
     }
+
     @Test
     void deleteAuth() {
     }
+
     @Test
     void getUser() {
     }
+
     @Test
     void saveUser() {
+    }
+
+    @Test
+    void clear() {
     }
 }
