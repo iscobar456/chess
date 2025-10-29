@@ -164,6 +164,8 @@ public class DataAccessTests {
 
     @Test
     void clear() throws SQLException, DataAccessException {
+        dataAccess.clear();
+
         // Create users
         String username1 = "user1";
         String username2 = "user2";
@@ -179,5 +181,14 @@ public class DataAccessTests {
         // Save auths
         dataAccess.saveAuth(new AuthData("uuid-uuid-uuid-uu1d", username1));
         dataAccess.saveAuth(new AuthData("uuid-uuid-uuid-uu2d", username2));
+
+        // Test clear()
+        dataAccess.clear();
+        assertNull(dataAccess.getUser(username1));
+        assertNull(dataAccess.getUser(username2));
+        assertNull(dataAccess.getGame(1));
+        assertNull(dataAccess.getGame(2));
+        assertNull(dataAccess.getAuth("uuid-uuid-uuid-uu1d"));
+        assertNull(dataAccess.getAuth("uuid-uuid-uuid-uu2d"));
     }
 }

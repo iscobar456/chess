@@ -29,7 +29,7 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void saveUser(UserData data) throws DataAccessException, SQLException {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("INSERT (?,?,?) INTO users")) {
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO users VALUES (?,?,?)")) {
                 preparedStatement.setString(1, data.username());
                 preparedStatement.setString(2, data.password());
                 preparedStatement.setString(3, data.email());
@@ -55,7 +55,7 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void saveAuth(AuthData data) throws DataAccessException, SQLException {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("INSERT (?,?) INTO auths")) {
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO auths VALUES (?,?)")) {
                 preparedStatement.setString(1, data.authToken());
                 preparedStatement.setString(2, data.username());
                 preparedStatement.executeQuery();
@@ -114,13 +114,13 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void saveGame(GameData data) throws DataAccessException, SQLException {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("INSERT (?,?,?,?,?) INTO games")) {
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO games VALUES (?,?,?,?,?)")) {
                 preparedStatement.setInt(1, data.gameID());
                 preparedStatement.setString(2, data.whiteUsername());
                 preparedStatement.setString(3, data.blackUsername());
                 preparedStatement.setString(4, data.gameName());
                 preparedStatement.setString(5, gson.toJson(data.game()));
-                preparedStatement.executeQuery();
+                preparedStatement.executeUpdate();
             }
         }
     }
@@ -128,8 +128,14 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void clear() throws DataAccessException, SQLException {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE users; TRUNCATE TABLE auths; TRUNCATE TABLE games;")) {
-                preparedStatement.executeQuery();
+            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE games")) {
+                preparedStatement.executeUpdate();
+            }
+            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE auths")) {
+                preparedStatement.executeUpdate();
+            }
+            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE users")) {
+                preparedStatement.executeUpdate();
             }
         }
     }
