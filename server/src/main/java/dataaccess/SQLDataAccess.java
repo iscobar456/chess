@@ -23,44 +23,44 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void saveUser(UserData data) throws DataAccessException, SQLException {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
+            try (var preparedStatement = conn.prepareStatement("INSERT (?,?,?) INTO users")) {
 
             }
         }
     }
 
     @Override
-    public AuthData getAuth(String authToken) {
+    public AuthData getAuth(String authToken) throws DataAccessException, SQLException {
         return null;
     }
 
     @Override
-    public void saveAuth(AuthData data) {
+    public void saveAuth(AuthData data) throws DataAccessException, SQLException {
 
     }
 
     @Override
-    public void deleteAuth(String authToken) {
+    public void deleteAuth(String authToken) throws DataAccessException, SQLException {
 
     }
 
     @Override
-    public ArrayList<GameData> getGames() {
+    public ArrayList<GameData> getGames() throws DataAccessException, SQLException {
         return null;
     }
 
     @Override
-    public GameData getGame(int gameID) {
+    public GameData getGame(int gameID) throws DataAccessException, SQLException {
         return null;
     }
 
     @Override
-    public void saveGame(GameData data) {
+    public void saveGame(GameData data) throws DataAccessException, SQLException {
 
     }
 
     @Override
-    public void clear() {
+    public void clear() throws DataAccessException, SQLException {
 
     }
 }
