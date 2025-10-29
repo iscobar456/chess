@@ -15,12 +15,13 @@ public class SQLDataAccess implements DataAccess {
             try (var preparedStatement = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
                 preparedStatement.setString(1, username);
                 var result = preparedStatement.executeQuery();
-                result.next();
-                UserData data = new UserData(
+                if (!result.next()) {
+                    return null;
+                }
+                return new UserData(
                         result.getString("username"),
                         result.getString("email"),
                         result.getString("password"));
-                return data;
             }
         }
     }
@@ -41,7 +42,12 @@ public class SQLDataAccess implements DataAccess {
     public AuthData getAuth(String authToken) throws DataAccessException, SQLException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT * FROM auths WHERE authtoken = ?")) {
-
+                preparedStatement.setString(1, authToken);
+                var result = preparedStatement.executeQuery();
+                if (!result.next()) {
+                    return null;
+                }
+                return new AuthData(result.getString(1), result.getString(2));
             }
         }
     }
@@ -63,7 +69,6 @@ public class SQLDataAccess implements DataAccess {
             try (var preparedStatement = conn.prepareStatement("DELETE FROM auths WHERE authtoken = ?")) {
                 preparedStatement.setString(1, authToken);
                 preparedStatement.executeQuery();
-
             }
         }
     }
@@ -72,7 +77,17 @@ public class SQLDataAccess implements DataAccess {
     public ArrayList<GameData> getGames() throws DataAccessException, SQLException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT * FROM games")) {
-
+                var result = preparedStatement.executeQuery();
+                ArrayList<GameData> games = new ArrayList<>();
+                while (result.next()) {
+                    games.add(new GameData(
+                            result.getInt(1),
+                            result.getString(2),
+                            result.getString(3),
+                            result.getString(4),
+                            (ChessGame) gson.fromJson(result.getString(5), ChessGame.class)));
+                }
+                return games;
             }
         }
     }
@@ -83,14 +98,15 @@ public class SQLDataAccess implements DataAccess {
             try (var preparedStatement = conn.prepareStatement("SELECT * FROM games WHERE id = ?")) {
                 preparedStatement.setInt(1, gameID);
                 var result = preparedStatement.executeQuery();
-                result.next();
+                if (!result.next()) {
+                    return null;
+                }
                 return new GameData(
                         result.getInt(1),
                         result.getString(2),
                         result.getString(3),
                         result.getString(4),
-                        (ChessGame) gson.fromJson(result.getString(5), ChessGame.class)
-                );
+                        (ChessGame) gson.fromJson(result.getString(5), ChessGame.class));
             }
         }
     }
