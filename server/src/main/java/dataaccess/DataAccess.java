@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public interface DataAccess {
     UserData getUser(String username) throws DataAccessException, SQLException;
-    void saveUser(UserData data);
+    void saveUser(UserData data) throws DataAccessException, SQLException;
     AuthData getAuth(String authToken);
     void saveAuth(AuthData data);
     void deleteAuth(String authToken);

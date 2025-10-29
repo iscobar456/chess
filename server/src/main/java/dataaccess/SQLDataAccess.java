@@ -21,8 +21,12 @@ public class SQLDataAccess implements DataAccess {
     }
 
     @Override
-    public void saveUser(UserData data) {
+    public void saveUser(UserData data) throws DataAccessException, SQLException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
 
+            }
+        }
     }
 
     @Override
