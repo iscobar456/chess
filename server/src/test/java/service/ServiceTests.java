@@ -1,22 +1,17 @@
 package service;
 
 import chess.ChessGame;
-import dataaccess.AuthData;
-import dataaccess.GameData;
-import dataaccess.MemoryDataAccess;
-import dataaccess.UserData;
+import dataaccess.*;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 import org.junit.jupiter.api.Test;
-
-import java.security.KeyException;
+import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 public class ServiceTests {
-    private final Service service = new Service();
+    private final SQLDataAccess dataAccess = new SQLDataAccess();
+    private final Service service = new Service(dataAccess);
 
     @Test
     void register() {
@@ -60,18 +55,18 @@ public class ServiceTests {
         service.clear();
         AuthData auth = service.register(username, password, "testuser@test.com");
         service.deleteAuth(auth.authToken());
-        assertThrows(BadRequestResponse.class, () -> {service.login(null, null);});
-        assertThrows(BadRequestResponse.class, () -> {service.login(null, password);});
-        assertThrows(BadRequestResponse.class, () -> {service.login(username, null);});
-        assertThrows(UnauthorizedResponse.class, () -> {service.login(username.substring(1), password);});
-        assertThrows(UnauthorizedResponse.class, () -> {service.login(username, password.substring(1));});
+        assertThrows(BadRequestResponse.class, () -> service.login(null, null));
+        assertThrows(BadRequestResponse.class, () -> service.login(null, password));
+        assertThrows(BadRequestResponse.class, () -> service.login(username, null));
+        assertThrows(UnauthorizedResponse.class, () -> service.login(username.substring(1), password));
+        assertThrows(UnauthorizedResponse.class, () -> service.login(username, password.substring(1)));
     }
 
     @Test
     void createAuth() {
         service.clear();
         AuthData auth = service.createAuth("testuser00");
-        assertTrue(auth.authToken() != null);
+        assertNotNull(auth.authToken());
     }
 
     @Test
@@ -85,7 +80,7 @@ public class ServiceTests {
         service.clear();
         AuthData auth = service.register("testuser00", "strongpassword00", "testuser@test.com");
         service.deleteAuth(auth.authToken());
-        assertThrows(UnauthorizedResponse.class, () -> {service.validateToken(auth.authToken());});
+        assertThrows(UnauthorizedResponse.class, () -> service.validateToken(auth.authToken()));
     }
 
     @Test
@@ -107,7 +102,7 @@ public class ServiceTests {
     void validateTokenInvalid() {
         service.clear();
         AuthData auth = service.register("testuser00", "strongpassword00", "testuser@test.com");
-        assertThrows(UnauthorizedResponse.class, () -> {service.validateToken(auth.authToken().substring(1));});
+        assertThrows(UnauthorizedResponse.class, () -> service.validateToken(auth.authToken().substring(1)));
     }
 
     @Test
@@ -119,7 +114,7 @@ public class ServiceTests {
         service.joinGame(gameID, "testuser00", ChessGame.TeamColor.BLACK);
         GameData game = service.getGame(gameID);
         assertEquals("testuser00", game.blackUsername());
-        assertEquals(null, game.whiteUsername());
+        assertNull(game.whiteUsername());
 
         // Add white user successfully.
         service.joinGame(gameID, "testuser01", ChessGame.TeamColor.WHITE);
@@ -134,9 +129,7 @@ public class ServiceTests {
         int gameID = service.createGame("game1");
         service.joinGame(gameID, "testuser00", ChessGame.TeamColor.BLACK);
         service.joinGame(gameID, "testuser01", ChessGame.TeamColor.WHITE);
-        assertThrows(ForbiddenResponse.class, () -> {
-            service.joinGame(gameID, "testuser02", ChessGame.TeamColor.BLACK);
-        });
+        assertThrows(ForbiddenResponse.class, () -> service.joinGame(gameID, "testuser02", ChessGame.TeamColor.BLACK));
     }
 
     @Test
@@ -145,18 +138,14 @@ public class ServiceTests {
         int gameID = service.createGame("game1");
         service.joinGame(gameID, "testuser00", ChessGame.TeamColor.BLACK);
         service.joinGame(gameID, "testuser01", ChessGame.TeamColor.WHITE);
-        assertThrows(ForbiddenResponse.class, () -> {
-            service.joinGame(gameID, "testuser02", ChessGame.TeamColor.WHITE);
-        });
+        assertThrows(ForbiddenResponse.class, () -> service.joinGame(gameID, "testuser02", ChessGame.TeamColor.WHITE));
     }
 
     @Test
     void joinGameBadID() {
         service.clear();
         int gameID = service.createGame("game1");
-        assertThrows(BadRequestResponse.class, () -> {
-            service.joinGame(gameID + 1, "testuser00", ChessGame.TeamColor.BLACK);
-        });
+        assertThrows(BadRequestResponse.class, () -> service.joinGame(gameID + 1, "testuser00", ChessGame.TeamColor.BLACK));
     }
 
     @Test
@@ -166,8 +155,8 @@ public class ServiceTests {
         ArrayList<GameData> games = service.getGames();
         assertEquals(1, games.size());
         assertEquals(gameID, games.getFirst().gameID());
-        assertEquals(null, games.getFirst().whiteUsername());
-        assertEquals(null, games.getFirst().blackUsername());
+        assertNull(games.getFirst().whiteUsername());
+        assertNull(games.getFirst().blackUsername());
         assertEquals("game1", games.getFirst().gameName());
 
     }
@@ -190,34 +179,36 @@ public class ServiceTests {
     @Test
     void getGamesNoDataAccess() {
         service.dataAccess = null;
-        assertThrows(NullPointerException.class, () -> service.getGames());
+        assertThrows(NullPointerException.class, service::getGames);
         service.dataAccess = new MemoryDataAccess();
     }
 
     @Test
     void clear() {
-        AuthData auth = new AuthData("asdjjjdjjd2978373881", "testuser00");
-        UserData user = new UserData("testuser00", "strongpassword", "testuser@example.com");
-        GameData game = new GameData(4, "testuser00", "testuser01", "game1", new ChessGame());
-        service.dataAccess.saveUser(user);
-        service.dataAccess.saveAuth(auth);
-        service.dataAccess.saveGame(game);
+        String authToken = "asdjjjdjjd2978373881";
+        String username = "testuser00";
+        AuthData auth = new AuthData(authToken, username);
+        UserData user = new UserData(username, "strongpassword", "testuser@example.com");
+        GameData game = new GameData(4, username, "testuser01", "game1", new ChessGame());
+        dataAccess.saveUser(user);
+        dataAccess.saveAuth(auth);
+        dataAccess.saveGame(game);
 
-        assertFalse(service.dataAccess.users.isEmpty());
-        assertFalse(service.dataAccess.auths.isEmpty());
-        assertFalse(service.dataAccess.games.isEmpty());
+        assertNotNull(dataAccess.getUser(username));
+        assertNotNull(dataAccess.getAuth(authToken));
+        assertNotNull(dataAccess.getGame(4));
 
         service.clear();
 
-        assertTrue(service.dataAccess.users.isEmpty());
-        assertTrue(service.dataAccess.auths.isEmpty());
-        assertTrue(service.dataAccess.games.isEmpty());
+        assertNull(dataAccess.getUser(username));
+        assertNull(dataAccess.getAuth(authToken));
+        assertNull(dataAccess.getGame(4));
     }
 
     @Test
     void clearNoDataAccess() {
         service.dataAccess = null;
-        assertThrows(NullPointerException.class, () -> service.clear());
+        assertThrows(NullPointerException.class, service::clear);
         service.dataAccess = new MemoryDataAccess();
     }
 }

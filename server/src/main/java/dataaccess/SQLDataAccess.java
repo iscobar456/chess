@@ -2,6 +2,7 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import io.javalin.http.InternalServerErrorResponse;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ public class SQLDataAccess implements DataAccess {
     private final Gson gson = new Gson();
 
     @Override
-    public UserData getUser(String username) throws DataAccessException, SQLException {
+    public UserData getUser(String username) {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
                 preparedStatement.setString(1, username);
@@ -23,11 +24,13 @@ public class SQLDataAccess implements DataAccess {
                         result.getString("email"),
                         result.getString("password"));
             }
+        } catch (Exception e) {
+            throw new InternalServerErrorResponse("internal error");
         }
     }
 
     @Override
-    public void saveUser(UserData data) throws DataAccessException, SQLException {
+    public void saveUser(UserData data) {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("INSERT INTO users VALUES (?,?,?)")) {
                 preparedStatement.setString(1, data.username());
@@ -35,11 +38,13 @@ public class SQLDataAccess implements DataAccess {
                 preparedStatement.setString(3, data.email());
                 preparedStatement.executeUpdate();
             }
+        } catch (Exception e) {
+            throw new InternalServerErrorResponse("internal error");
         }
     }
 
     @Override
-    public AuthData getAuth(String authToken) throws DataAccessException, SQLException {
+    public AuthData getAuth(String authToken) {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT * FROM auths WHERE authtoken = ?")) {
                 preparedStatement.setString(1, authToken);
@@ -49,32 +54,38 @@ public class SQLDataAccess implements DataAccess {
                 }
                 return new AuthData(result.getString(1), result.getString(2));
             }
+        } catch (Exception e) {
+            throw new InternalServerErrorResponse("internal error");
         }
     }
 
     @Override
-    public void saveAuth(AuthData data) throws DataAccessException, SQLException {
+    public void saveAuth(AuthData data) {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("INSERT INTO auths VALUES (?,?)")) {
                 preparedStatement.setString(1, data.authToken());
                 preparedStatement.setString(2, data.username());
-                preparedStatement.executeQuery();
+                preparedStatement.executeUpdate();
             }
+        } catch (Exception e) {
+            throw new InternalServerErrorResponse("internal error");
         }
     }
 
     @Override
-    public void deleteAuth(String authToken) throws DataAccessException, SQLException {
+    public void deleteAuth(String authToken) {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("DELETE FROM auths WHERE authtoken = ?")) {
                 preparedStatement.setString(1, authToken);
-                preparedStatement.executeQuery();
+                preparedStatement.executeUpdate();
             }
+        } catch (Exception e) {
+            throw new InternalServerErrorResponse("internal error");
         }
     }
 
     @Override
-    public ArrayList<GameData> getGames() throws DataAccessException, SQLException {
+    public ArrayList<GameData> getGames() {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT * FROM games")) {
                 var result = preparedStatement.executeQuery();
@@ -89,11 +100,13 @@ public class SQLDataAccess implements DataAccess {
                 }
                 return games;
             }
+        } catch (Exception e) {
+            throw new InternalServerErrorResponse("internal error");
         }
     }
 
     @Override
-    public GameData getGame(int gameID) throws DataAccessException, SQLException {
+    public GameData getGame(int gameID) {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT * FROM games WHERE id = ?")) {
                 preparedStatement.setInt(1, gameID);
@@ -108,11 +121,13 @@ public class SQLDataAccess implements DataAccess {
                         result.getString(4),
                         (ChessGame) gson.fromJson(result.getString(5), ChessGame.class));
             }
+        } catch (Exception e) {
+            throw new InternalServerErrorResponse("internal error");
         }
     }
 
     @Override
-    public void saveGame(GameData data) throws DataAccessException, SQLException {
+    public void saveGame(GameData data) {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("INSERT INTO games VALUES (?,?,?,?,?)")) {
                 preparedStatement.setInt(1, data.gameID());
@@ -122,21 +137,25 @@ public class SQLDataAccess implements DataAccess {
                 preparedStatement.setString(5, gson.toJson(data.game()));
                 preparedStatement.executeUpdate();
             }
+        } catch (Exception e) {
+            throw new InternalServerErrorResponse("internal error");
         }
     }
 
     @Override
-    public void clear() throws DataAccessException, SQLException {
+    public void clear() {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE games")) {
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM games")) {
                 preparedStatement.executeUpdate();
             }
-            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE auths")) {
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM auths")) {
                 preparedStatement.executeUpdate();
             }
-            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE users")) {
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM users")) {
                 preparedStatement.executeUpdate();
             }
+        } catch (Exception e) {
+            throw new InternalServerErrorResponse("internal error");
         }
     }
 }

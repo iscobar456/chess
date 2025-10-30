@@ -9,7 +9,7 @@ CREATE TABLE auths (
     authtoken VARCHAR(255),
     username VARCHAR(255),
     PRIMARY KEY (authtoken),
-    FOREIGN KEY (username) REFERENCES users(username)
+    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
 );
 
 CREATE TABLE games (
@@ -19,6 +19,6 @@ CREATE TABLE games (
     gamename VARCHAR(255),
     game MEDIUMTEXT,
     PRIMARY KEY (id),
-    FOREIGN KEY (whiteusername) REFERENCES users(username),
-    FOREIGN KEY (blackusername) REFERENCES users(username)
+    FOREIGN KEY (whiteusername) REFERENCES users(username) ON DELETE SET NULL,
+    FOREIGN KEY (blackusername) REFERENCES users(username) ON DELETE SET NULL
 );

@@ -6,12 +6,16 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.UUID;
 
 public class Service {
-    // I've made this public for now. Will change later.
-    public MemoryDataAccess dataAccess = new MemoryDataAccess();
+    public DataAccess dataAccess;
+
+    Service(DataAccess dataAccess) {
+        this.dataAccess = dataAccess;
+    }
 
     public AuthData register(String username, String password, String email) {
         if (username == null) {

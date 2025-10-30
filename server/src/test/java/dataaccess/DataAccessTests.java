@@ -13,7 +13,9 @@ public class DataAccessTests {
     private final SQLDataAccess dataAccess = new SQLDataAccess();
 
     @Test
-    void getGame() throws SQLException, DataAccessException {
+    void getGame() {
+        dataAccess.clear();
+
         // Create users
         String username1 = "user1";
         String username2 = "user2";
@@ -34,7 +36,9 @@ public class DataAccessTests {
     }
 
     @Test
-    void getGames() throws SQLException, DataAccessException {
+    void getGames() {
+        dataAccess.clear();
+
         // Create users
         String username1 = "user1";
         String username2 = "user2";
@@ -59,7 +63,9 @@ public class DataAccessTests {
     }
 
     @Test
-    void saveGame() throws SQLException, DataAccessException {
+    void saveGame() {
+        dataAccess.clear();
+
         // Create users
         String username1 = "user1";
         String username2 = "user2";
@@ -83,7 +89,9 @@ public class DataAccessTests {
     }
 
     @Test
-    void getAuth() throws SQLException, DataAccessException {
+    void getAuth() {
+        dataAccess.clear();
+
         // Create user
         String username1 = "user1";
         String password = "weakpassword";
@@ -100,7 +108,9 @@ public class DataAccessTests {
     }
 
     @Test
-    void saveAuth() throws SQLException, DataAccessException {
+    void saveAuth() {
+        dataAccess.clear();
+
         // Create user
         String username1 = "user1";
         String password = "weakpassword";
@@ -118,7 +128,9 @@ public class DataAccessTests {
     }
 
     @Test
-    void deleteAuth() throws SQLException, DataAccessException {
+    void deleteAuth() {
+        dataAccess.clear();
+
         // Create user
         String username1 = "user1";
         String password = "weakpassword";
@@ -135,7 +147,9 @@ public class DataAccessTests {
     }
 
     @Test
-    void getUser() throws SQLException, DataAccessException {
+    void getUser() {
+        dataAccess.clear();
+
         // Create user
         String username1 = "user1";
         String password = "weakpassword";
@@ -148,7 +162,9 @@ public class DataAccessTests {
     }
 
     @Test
-    void saveUser() throws SQLException, DataAccessException {
+    void saveUser() {
+        dataAccess.clear();
+
         // Create user
         String username1 = "user1";
         String password = "weakpassword";
@@ -163,7 +179,7 @@ public class DataAccessTests {
     }
 
     @Test
-    void clear() throws SQLException, DataAccessException {
+    void clear() {
         dataAccess.clear();
 
         // Create users
