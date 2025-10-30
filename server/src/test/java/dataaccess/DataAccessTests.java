@@ -1,8 +1,6 @@
 package dataaccess;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
-
 import io.javalin.http.InternalServerErrorResponse;
 import org.junit.jupiter.api.Test;
 
@@ -117,9 +115,11 @@ public class DataAccessTests {
         dataAccess.clear();
 
         // Save game
-        assertThrows(InternalServerErrorResponse.class, () -> {
-            dataAccess.saveGame(new GameData(1, "username", null, "name", new ChessGame()));
-        });
+        assertThrows(InternalServerErrorResponse.class, () -> dataAccess.saveGame(new GameData(1,
+                "username",
+                null,
+                "name",
+                new ChessGame())));
     }
 
     @Test
@@ -184,9 +184,8 @@ public class DataAccessTests {
         dataAccess.clear();
 
         // Save auth
-        assertThrows(InternalServerErrorResponse.class, () -> {
-            dataAccess.saveAuth(new AuthData("uuid", "username"));
-        });
+        assertThrows(InternalServerErrorResponse.class, () -> dataAccess.saveAuth(
+                new AuthData("uuid", "username")));
     }
 
     @Test
