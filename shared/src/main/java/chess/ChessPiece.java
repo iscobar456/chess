@@ -10,6 +10,18 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessPiece {
+    static final String WHITE_KING = " ♔ ";
+    static final String WHITE_QUEEN = " ♕ ";
+    static final String WHITE_BISHOP = " ♗ ";
+    static final String WHITE_KNIGHT = " ♘ ";
+    static final String WHITE_ROOK = " ♖ ";
+    static final String WHITE_PAWN = " ♙ ";
+    static final String BLACK_KING = " ♚ ";
+    static final String BLACK_QUEEN = " ♛ ";
+    public static final String BLACK_BISHOP = " ♝ ";
+    static final String BLACK_KNIGHT = " ♞ ";
+    static final String BLACK_ROOK = " ♜ ";
+    static final String BLACK_PAWN = " ♟ ";
 
     private ChessGame.TeamColor color;
     private PieceType type;
@@ -75,8 +87,13 @@ public class ChessPiece {
     }
 
     public String toString() {
-        return String.valueOf(
-                (char) (type.toString().charAt(0) + ((color == ChessGame.TeamColor.BLACK) ? 1 : 0) * 32)
-        );
+        return switch(type) {
+            case KING -> color == ChessGame.TeamColor.WHITE ? WHITE_KING : BLACK_KING;
+            case QUEEN -> color == ChessGame.TeamColor.WHITE ? WHITE_QUEEN : BLACK_QUEEN;
+            case ROOK -> color == ChessGame.TeamColor.WHITE ? WHITE_ROOK : BLACK_ROOK;
+            case BISHOP -> color == ChessGame.TeamColor.WHITE ? WHITE_BISHOP : BLACK_BISHOP;
+            case KNIGHT -> color == ChessGame.TeamColor.WHITE ? WHITE_KNIGHT : BLACK_KNIGHT;
+            case PAWN -> color == ChessGame.TeamColor.WHITE ? WHITE_PAWN : BLACK_PAWN;
+        };
     }
 }
