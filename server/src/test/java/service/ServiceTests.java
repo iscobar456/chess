@@ -108,6 +108,8 @@ public class ServiceTests {
     @Test
     void joinGame() {
         service.clear();
+        service.register("testuser00", "strongpassword00", "testuser@test.com");
+        service.register("testuser01", "strongpassword00", "testuser@test.com");
         int gameID = service.createGame("game1");
 
         // Add black user successfully.
@@ -126,6 +128,8 @@ public class ServiceTests {
     @Test
     void joinFullGameBlack() {
         service.clear();
+        service.register("testuser00", "strongpassword00", "testuser@test.com");
+        service.register("testuser01", "strongpassword00", "testuser@test.com");
         int gameID = service.createGame("game1");
         service.joinGame(gameID, "testuser00", ChessGame.TeamColor.BLACK);
         service.joinGame(gameID, "testuser01", ChessGame.TeamColor.WHITE);
@@ -135,6 +139,8 @@ public class ServiceTests {
     @Test
     void joinFullGameWhite() {
         service.clear();
+        service.register("testuser00", "strongpassword00", "testuser@test.com");
+        service.register("testuser01", "strongpassword00", "testuser@test.com");
         int gameID = service.createGame("game1");
         service.joinGame(gameID, "testuser00", ChessGame.TeamColor.BLACK);
         service.joinGame(gameID, "testuser01", ChessGame.TeamColor.WHITE);
@@ -185,22 +191,25 @@ public class ServiceTests {
 
     @Test
     void clear() {
+        String username1 = "testuser00";
+        String username2 = "testuser01";
+        service.register(username1, "strongpassword00", "testuser@test.com");
+        service.register(username2, "strongpassword00", "testuser@test.com");
+
         String authToken = "asdjjjdjjd2978373881";
-        String username = "testuser00";
-        AuthData auth = new AuthData(authToken, username);
-        UserData user = new UserData(username, "strongpassword", "testuser@example.com");
-        GameData game = new GameData(4, username, "testuser01", "game1", new ChessGame());
-        dataAccess.saveUser(user);
+        AuthData auth = new AuthData(authToken, username1);
         dataAccess.saveAuth(auth);
+
+        GameData game = new GameData(4, username1, username2, "game1", new ChessGame());
         dataAccess.saveGame(game);
 
-        assertNotNull(dataAccess.getUser(username));
+        assertNotNull(dataAccess.getUser(username1));
         assertNotNull(dataAccess.getAuth(authToken));
         assertNotNull(dataAccess.getGame(4));
 
         service.clear();
 
-        assertNull(dataAccess.getUser(username));
+        assertNull(dataAccess.getUser(username2));
         assertNull(dataAccess.getAuth(authToken));
         assertNull(dataAccess.getGame(4));
     }

@@ -3,6 +3,7 @@ package dataaccess;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import io.javalin.http.InternalServerErrorResponse;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,6 +37,20 @@ public class DataAccessTests {
     }
 
     @Test
+    void getGameInvalidId() {
+        dataAccess.clear();
+
+        // Create game
+        int gameID = 1;
+        String gameName = "game1";
+        ChessGame chessGame = new ChessGame();
+        dataAccess.saveGame(new GameData(gameID, null, null, gameName, chessGame));
+
+        // Test getGame()
+        assertNull(dataAccess.getGame(2));
+    }
+
+    @Test
     void getGames() {
         dataAccess.clear();
 
@@ -60,6 +75,15 @@ public class DataAccessTests {
         for (var game : games) {
             assertEquals(GameData.class, game.getClass());
         }
+    }
+
+    @Test
+    void getGamesNoGames() {
+        dataAccess.clear();
+
+        // Test getGames()
+        ArrayList<GameData> games = dataAccess.getGames();
+        assertTrue(games.isEmpty());
     }
 
     @Test
@@ -89,6 +113,16 @@ public class DataAccessTests {
     }
 
     @Test
+    void saveGameInvalidUsername() {
+        dataAccess.clear();
+
+        // Save game
+        assertThrows(InternalServerErrorResponse.class, () -> {
+            dataAccess.saveGame(new GameData(1, "username", null, "name", new ChessGame()));
+        });
+    }
+
+    @Test
     void getAuth() {
         dataAccess.clear();
 
@@ -105,6 +139,24 @@ public class DataAccessTests {
         // Test getAuth()
         AuthData auth = dataAccess.getAuth(authToken);
         assertEquals(AuthData.class, auth.getClass());
+    }
+
+    @Test
+    void getAuthInvalidToken() {
+        dataAccess.clear();
+
+        // Create user
+        String username1 = "user1";
+        String password = "weakpassword";
+        String email = "user1@mail.com";
+        dataAccess.saveUser(new UserData(username1, password, email));
+
+        // Create auth
+        String authToken = "uuid-uuid-uuid-uuid";
+        dataAccess.saveAuth(new AuthData(authToken, username1));
+
+        // Test getAuth()
+        assertNull(dataAccess.getAuth(authToken.substring(1)));
     }
 
     @Test
@@ -128,6 +180,16 @@ public class DataAccessTests {
     }
 
     @Test
+    void saveAuthInvalidUsername() {
+        dataAccess.clear();
+
+        // Save auth
+        assertThrows(InternalServerErrorResponse.class, () -> {
+            dataAccess.saveAuth(new AuthData("uuid", "username"));
+        });
+    }
+
+    @Test
     void deleteAuth() {
         dataAccess.clear();
 
@@ -147,6 +209,17 @@ public class DataAccessTests {
     }
 
     @Test
+    void deleteAuthInvalidToken() {
+        dataAccess.clear();
+        dataAccess.saveUser(new UserData("username1", "weakpassword", "test@mail.com"));
+        dataAccess.saveAuth(new AuthData("uuid", "username1"));
+
+        // Delete auth
+        dataAccess.deleteAuth("uuid-invalid");
+        assertNotNull(dataAccess.getAuth("uuid"));
+    }
+
+    @Test
     void getUser() {
         dataAccess.clear();
 
@@ -159,6 +232,20 @@ public class DataAccessTests {
         // Test getUser()
         UserData user = dataAccess.getUser(username1);
         assertEquals(UserData.class, user.getClass());
+    }
+
+    @Test
+    void getUserInvalidUsername() {
+        dataAccess.clear();
+
+        // Create user
+        String username1 = "user1";
+        String password = "weakpassword";
+        String email = "user1@mail.com";
+        dataAccess.saveUser(new UserData(username1, password, email));
+
+        // Test getUser()
+        assertNull(dataAccess.getUser(username1.substring(1)));
     }
 
     @Test
@@ -176,6 +263,14 @@ public class DataAccessTests {
         assertEquals(username1, user.username());
         assertEquals(password, user.password());
         assertEquals(email, user.email());
+    }
+
+    @Test
+    void saveUserInvalidInput() {
+        assertThrows(InternalServerErrorResponse.class, () -> {
+            dataAccess.saveUser(new UserData(null, null, null));
+            dataAccess.saveUser(new UserData(null, null, null));
+        });
     }
 
     @Test

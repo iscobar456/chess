@@ -129,7 +129,10 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void saveGame(GameData data) {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("INSERT INTO games VALUES (?,?,?,?,?)")) {
+            try (var preparedStatement = conn.prepareStatement(
+                    "INSERT INTO games (id, whiteusername, blackusername, gamename, game) VALUES (?,?,?,?,?)" +
+                            " ON DUPLICATE KEY UPDATE whiteusername = VALUES(whiteusername)," +
+                            " blackusername = VALUES(blackusername), gamename = VALUES(gamename), game = VALUES(game)")) {
                 preparedStatement.setInt(1, data.gameID());
                 preparedStatement.setString(2, data.whiteUsername());
                 preparedStatement.setString(3, data.blackUsername());

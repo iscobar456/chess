@@ -4,9 +4,7 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-import dataaccess.AuthData;
-import dataaccess.GameData;
-import dataaccess.UserData;
+import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.HttpResponseException;
@@ -21,7 +19,8 @@ public class Server {
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
-        Service service = new Service();
+        DataAccess dataAccess = new SQLDataAccess();
+        Service service = new Service(dataAccess);
         Gson gson = new Gson();
 
         javalin.post("/user", ctx -> {

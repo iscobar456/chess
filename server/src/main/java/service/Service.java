@@ -5,6 +5,7 @@ import dataaccess.*;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.UUID;
 public class Service {
     public DataAccess dataAccess;
 
-    Service(DataAccess dataAccess) {
+    public Service(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
     }
 
@@ -31,7 +32,7 @@ public class Service {
             throw new ForbiddenResponse("username already taken");
         }
 
-        user = new UserData(username, password, email);
+        user = new UserData(username, BCrypt.hashpw(password, BCrypt.gensalt()), email);
         dataAccess.saveUser(user);
         AuthData auth = createAuth(username);
         dataAccess.saveAuth(auth);
@@ -53,7 +54,7 @@ public class Service {
             throw new BadRequestResponse("must provide password");
         }
         UserData user = dataAccess.getUser(username);
-        if (user == null || !user.password().equals(password)) {
+        if (user == null || !BCrypt.checkpw(password, user.password())) {
             throw new UnauthorizedResponse("unauthorized");
         }
         AuthData auth = createAuth(username);
