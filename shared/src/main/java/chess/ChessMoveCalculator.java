@@ -59,8 +59,8 @@ public class ChessMoveCalculator {
     }
 
     private static ArrayList<ChessMove> getRookMoves(ChessBoard board, ChessPosition pos, ChessGame.TeamColor color) {
-        ArrayList<int[]> vectors = new ArrayList<>(Arrays.asList(ORTHO_VECTS));
-        return calculateMoves(board, pos, vectors, false, color);
+        ArrayList<int[]> rookVectors = new ArrayList<>(Arrays.asList(ORTHO_VECTS));
+        return calculateMoves(board, pos, rookVectors, false, color);
     }
 
     private static ArrayList<ChessMove> getKnightMoves(ChessBoard board, ChessPosition pos, ChessGame.TeamColor color) {
@@ -85,7 +85,12 @@ public class ChessMoveCalculator {
         return calculateMoves(board, pos, vectors, true, color);
     }
 
-    private static void addPawnCaptureMoves(ChessPosition pos, ChessGame.TeamColor color, int[][] captureVectors, ChessBoard board, ArrayList<ChessMove> moves) {
+    private static void addPawnCaptureMoves(
+            ChessPosition pos,
+            ChessGame.TeamColor color,
+            int[][] captureVectors,
+            ChessBoard board,
+            ArrayList<ChessMove> moves) {
         for (var captureVect : captureVectors) {
             ChessPosition capture = addVectPosition(captureVect, pos);
             if (capture.isInBounds() && isEnemy(board, capture, color)) {
