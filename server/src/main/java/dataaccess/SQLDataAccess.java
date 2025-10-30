@@ -4,11 +4,37 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import io.javalin.http.InternalServerErrorResponse;
 
-import java.sql.SQLException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLSyntaxErrorException;
 import java.util.ArrayList;
 
 public class SQLDataAccess implements DataAccess {
     private final Gson gson = new Gson();
+
+    public SQLDataAccess() {
+        configureDatabase();
+    }
+
+    private void configureDatabase() {
+        try {
+            DatabaseManager.createDatabase();
+            InputStream schemaIn = getClass().getResourceAsStream("/schema.sql");
+            String schema = new String(schemaIn.readAllBytes(), StandardCharsets.UTF_8);
+
+            try (var conn = DatabaseManager.getConnection()) {
+                for (String statement : schema.split("(?<=;)\n")) {
+                    try (var preparedStatement = conn.prepareStatement(statement)) {
+                        preparedStatement.executeUpdate();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            if (e.getClass() != SQLSyntaxErrorException.class) {
+                throw new InternalServerErrorResponse("couldn't set up database");
+            }
+        }
+    }
 
     @Override
     public UserData getUser(String username) {
