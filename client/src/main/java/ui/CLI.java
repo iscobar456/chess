@@ -1,8 +1,18 @@
 package ui;
 
+import serverfacade.ServerFacade;
+
 import java.util.HashMap;
+import java.util.Scanner;
 
 public class CLI {
+    Scanner scanner;
+    ServerFacade server;
+
+    public CLI() {
+        scanner = new Scanner(System.in);
+        server = new ServerFacade("http", "localhost", 5321);
+    }
     boolean isAuthorized = false;
 
     public void help() {
@@ -13,6 +23,37 @@ public class CLI {
 
     public void quit() {
         System.out.println("Goodbye!");
+    }
+
+    public void login() {
+        System.out.printf("Username: ");
+        String username = scanner.nextLine();
+        String password = scanner.nextLine();
+        String authToken = server.login(username, password);
+    }
+
+    public void register() {
+
+    }
+
+    public void logout() {
+
+    }
+
+    public void create() {
+
+    }
+
+    public void list() {
+
+    }
+
+    public void join() {
+
+    }
+
+    public void observe() {
+
     }
 
     public boolean processCommand(String command) {
@@ -29,6 +70,6 @@ public class CLI {
             handlers.put("observe", () -> help());
         }
 
-        return !command.equals("exit");
+        return !command.equals("quit");
     }
 }
