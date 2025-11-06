@@ -9,12 +9,12 @@ import java.util.Scanner;
 public class CLI {
     Scanner scanner;
     ServerFacade server;
+    boolean isAuthorized = false;
 
     public CLI() {
         scanner = new Scanner(System.in);
         server = new ServerFacade("http", "localhost", 5321);
     }
-    boolean isAuthorized = false;
 
     public void help() {
         System.out.println("""
@@ -34,6 +34,7 @@ public class CLI {
 
         try {
             server.login(username, password);
+            isAuthorized = true;
         } catch (Client.BadRequestResponse e) {
             System.out.println("Password and username are required fields.");
         } catch (Client.UnauthorizedResponse e) {
@@ -51,6 +52,7 @@ public class CLI {
 
         try {
             server.register(username, password, email);
+            isAuthorized = true;
         } catch (Client.BadRequestResponse e) {
             System.out.println("Username, password, and email are required fields.");
         } catch (Client.UnauthorizedResponse e) {
@@ -61,6 +63,7 @@ public class CLI {
     public void logout() throws Exception {
         try {
             server.logout();
+            isAuthorized = false;
         } catch (Client.UnauthorizedResponse e) {
             System.out.println("Not logged in.");
         }
@@ -91,18 +94,22 @@ public class CLI {
 
     }
 
+    public interface CLIRunnable {
+        void run() throws Exception;
+    }
+
     public boolean processCommand(String command) {
-        HashMap<String, Runnable> handlers = new HashMap<>();
+        HashMap<String, CLIRunnable> handlers = new HashMap<>();
         handlers.put("help", () -> help());
         handlers.put("quit", () -> quit());
-        handlers.put("login", () -> help());
-        handlers.put("register", () -> help());
+        handlers.put("login", () -> login());
+        handlers.put("register", () -> register());
         if (isAuthorized) {
-            handlers.put("logout", () -> help());
-            handlers.put("create", () -> help());
-            handlers.put("list", () -> help());
-            handlers.put("join", () -> help());
-            handlers.put("observe", () -> help());
+            handlers.put("logout", () -> login());
+            handlers.put("create", () -> create());
+            handlers.put("list", () -> list());
+            handlers.put("join", () -> join());
+            handlers.put("observe", () -> observe());
         }
 
         try {
