@@ -12,7 +12,7 @@ import java.util.Map;
 public class Client {
     private static final HttpClient client = HttpClient.newHttpClient();
 
-    private static HttpResponse<String> sendRequest(String url, String method, String body)
+    public static HttpResponse<String> sendRequest(String url, String method, String body)
             throws InterruptedException, IOException {
         var request = HttpRequest.newBuilder(URI.create(url))
                 .method(method, requestBodyPublisher(body))
@@ -28,10 +28,9 @@ public class Client {
         }
     }
 
-    private static void receiveResponse(HttpResponse<String> response) {
+    public static Map receiveResponse(HttpResponse<String> response) {
         var statusCode = response.statusCode();
-
-        var responseBody = new Gson().fromJson(response.body(), Map.class);
-        System.out.printf("= Response =========\n[%d]\n\n%s\n\n", statusCode, responseBody);
+        Map<String, String> responseBody = new Gson().fromJson(response.body(), Map.class);
+        return responseBody;
     }
 }
