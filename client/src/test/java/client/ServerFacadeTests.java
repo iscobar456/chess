@@ -3,6 +3,7 @@ package client;
 import org.junit.jupiter.api.*;
 import server.Server;
 import serverfacade.ServerFacade;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class ServerFacadeTests {
@@ -35,12 +36,26 @@ public class ServerFacadeTests {
         var password = "strongpassword";
         var email = "test@test.com";
         serverFacade.register(username, password, email);
+        assertNotNull(serverFacade.getAuthToken());
+    }
+
+    @Test
+    public void logoutTest() throws Exception {
+        var username = "isaac";
+        var password = "strongpassword";
+        var email = "test@test.com";
+        serverFacade.register(username, password, email);
+        serverFacade.logout();
+//        assertThrows()
     }
 
     @Test
     public void loginTest() throws Exception {
         var username = "isaac";
         var password = "strongpassword";
+        var email = "test@test.com";
+        serverFacade.register(username, password, email);
+        serverFacade.logout();
         serverFacade.login(username, password);
     }
 }

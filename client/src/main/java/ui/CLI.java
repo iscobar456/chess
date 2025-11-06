@@ -28,8 +28,10 @@ public class CLI {
     public void login() throws Exception {
         System.out.printf("Username: ");
         String username = scanner.nextLine();
+        System.out.printf("Password: ");
         String password = scanner.nextLine();
-        String authToken = server.login(username, password);
+
+        server.login(username, password);
     }
 
     public void register() {

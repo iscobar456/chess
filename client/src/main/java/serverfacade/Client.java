@@ -12,12 +12,38 @@ import java.util.Map;
 public class Client {
     private static final HttpClient client = HttpClient.newHttpClient();
 
+    public static class ResponseException extends Exception {
+        private String message;
+        public ResponseException() {}
+        public ResponseException(String message) {
+            this.message = message;
+        }
+        public String getMessage() {
+            return message;
+        }
+    };
+
+    public static class BadRequestResponse extends ResponseException {};
+    public static class UnauthorizedResponse extends ResponseException {};
+    public static class ForbiddenResponse extends ResponseException {};
+    public static class ServerErrorResponse extends ResponseException {};
+
     public static HttpResponse<String> sendRequest(String url, String method, String body)
-            throws InterruptedException, IOException {
+            throws Exception {
         var request = HttpRequest.newBuilder(URI.create(url))
                 .method(method, requestBodyPublisher(body))
                 .build();
-        return client.send(request, HttpResponse.BodyHandlers.ofString());
+        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() == 400) {
+            throw new BadRequestResponse();
+        } else if (response.statusCode() == 401) {
+            throw new UnauthorizedResponse();
+        } else if (response.statusCode() == 403) {
+            throw new ForbiddenResponse();
+        } else if (response.statusCode() == 500) {
+            throw new ServerErrorResponse();
+        }
+        return response;
     }
 
     private static HttpRequest.BodyPublisher requestBodyPublisher(String body) throws IOException {
