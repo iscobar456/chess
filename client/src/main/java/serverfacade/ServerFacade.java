@@ -32,7 +32,8 @@ public class ServerFacade {
 
     public void login(String username, String password) throws Exception {
         String urlString = String.format("%s/session", baseUrl);
-        HttpResponse<String> response = Client.sendRequest(urlString, "POST", gson.toJson(Map.of("username", username, "password", password)));
+        HttpResponse<String> response = Client.sendRequest(
+                urlString, "POST", gson.toJson(Map.of("username", username, "password", password)));
         Map<String, String> responseBody = Client.receiveResponse(response);
         authToken = responseBody.get("authToken");
     }

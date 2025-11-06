@@ -1,5 +1,6 @@
 package ui;
 
+import serverfacade.Client;
 import serverfacade.ServerFacade;
 
 import java.util.HashMap;
@@ -31,19 +32,51 @@ public class CLI {
         System.out.printf("Password: ");
         String password = scanner.nextLine();
 
-        server.login(username, password);
+        try {
+            server.login(username, password);
+        } catch (Client.BadRequestResponse e) {
+            System.out.println("Password and username are required fields.");
+        } catch (Client.UnauthorizedResponse e) {
+            System.out.println("Incorrect username or password.");
+        }
     }
 
-    public void register() {
+    public void register() throws Exception {
+        System.out.printf("Username: ");
+        String username = scanner.nextLine();
+        System.out.printf("Password: ");
+        String password = scanner.nextLine();
+        System.out.printf("Email: ");
+        String email = scanner.nextLine();
 
+        try {
+            server.register(username, password, email);
+        } catch (Client.BadRequestResponse e) {
+            System.out.println("Username, password, and email are required fields.");
+        } catch (Client.UnauthorizedResponse e) {
+            System.out.println("Incorrect username or password.");
+        }
     }
 
-    public void logout() {
-
+    public void logout() throws Exception {
+        try {
+            server.logout();
+        } catch (Client.UnauthorizedResponse e) {
+            System.out.println("Not logged in.");
+        }
     }
 
-    public void create() {
-
+    public void create() throws Exception {
+//        System.out.printf("Game name: ");
+//        String gameName = scanner.nextLine();
+//
+//        try {
+//            server.createGame(gameName);
+//        } catch (Client.BadRequestResponse e) {
+//            System.out.println("");
+//        } catch (Client.UnauthorizedResponse e) {
+//            System.out.println("Incorrect username or password.");
+//        }
     }
 
     public void list() {
@@ -70,6 +103,12 @@ public class CLI {
             handlers.put("list", () -> help());
             handlers.put("join", () -> help());
             handlers.put("observe", () -> help());
+        }
+
+        try {
+            handlers.get(command).run();
+        } catch (Exception e) {
+            System.out.println("An error occurred and the operation was unsuccessful.");
         }
 
         return !command.equals("quit");
