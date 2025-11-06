@@ -19,23 +19,27 @@ public class ServerFacade {
         this.authToken = authToken;
     }
 
-    public void register(String username, String password, String email) {
-
+    public String register(String username, String password, String email) throws Exception {
+        String urlString = String.format("%s/session", baseUrl);
+        HttpResponse<String> response = Client.sendRequest(
+                urlString,
+                "POST",
+                gson.toJson(
+                        Map.of("username", username, "password", password, "email", email)));
+        Map<String, String> responseBody = Client.receiveResponse(response);
+        return responseBody.get("authToken");
     }
 
-    public String login(String username, String password) {
-        try {
-            String urlString = String.format("%s/login", baseUrl);
-            HttpResponse<String> response = Client.sendRequest(urlString, "GET", gson.toJson(Map.of("username", username, "password", password)));
-            Map<String, String> responseBody = Client.receiveResponse(response);
-            return response.body();
-        } catch (Exception e) {
-            return null;
-        }
+    public String login(String username, String password) throws Exception {
+        String urlString = String.format("%s/session", baseUrl);
+        HttpResponse<String> response = Client.sendRequest(urlString, "POST", gson.toJson(Map.of("username", username, "password", password)));
+        Map<String, String> responseBody = Client.receiveResponse(response);
+        return responseBody.get("authToken");
     }
 
-    public void logout() {
-
+    public void logout() throws Exception {
+        String urlString = String.format("%s/session", baseUrl);
+        Client.sendRequest(urlString, "DELETE", null);
     }
 
     public void createGame(String gameName) {

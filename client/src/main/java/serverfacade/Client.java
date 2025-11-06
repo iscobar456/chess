@@ -29,7 +29,6 @@ public class Client {
     }
 
     public static Map receiveResponse(HttpResponse<String> response) {
-        var statusCode = response.statusCode();
         Map<String, String> responseBody = new Gson().fromJson(response.body(), Map.class);
         return responseBody;
     }

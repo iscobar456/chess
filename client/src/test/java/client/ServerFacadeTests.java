@@ -30,7 +30,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void registerTest() {
+    public void registerTest() throws Exception {
         var username = "isaac";
         var password = "strongpassword";
         var email = "test@test.com";
@@ -38,7 +38,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void loginTest() {
+    public void loginTest() throws Exception {
         var username = "isaac";
         var password = "strongpassword";
         serverFacade.login(username, password);

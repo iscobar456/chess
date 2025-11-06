@@ -25,7 +25,7 @@ public class CLI {
         System.out.println("Goodbye!");
     }
 
-    public void login() {
+    public void login() throws Exception {
         System.out.printf("Username: ");
         String username = scanner.nextLine();
         String password = scanner.nextLine();
