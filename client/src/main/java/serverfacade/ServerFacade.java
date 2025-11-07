@@ -20,7 +20,7 @@ public class ServerFacade {
     }
 
     public void register(String username, String password, String email) throws Exception {
-        String urlString = String.format("%s/session", baseUrl);
+        String urlString = String.format("%s/user", baseUrl);
         HttpResponse<String> response = Client.sendRequest(
                 urlString,
                 "POST",

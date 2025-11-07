@@ -10,16 +10,32 @@ public class CLI {
     Scanner scanner;
     ServerFacade server;
     boolean isAuthorized = false;
+    HashMap<String, CLIRunnable> handlers;
 
     public CLI() {
         scanner = new Scanner(System.in);
-        server = new ServerFacade("http", "localhost", 5321);
+        server = new ServerFacade("http", "localhost", 8080);
     }
 
     public void help() {
-        System.out.println("""
-                Help message...
-                """);
+        if (isAuthorized) {
+            System.out.printf("""
+                    logout: Log out of your account
+                    create: Creates a new game
+                    list: List all games
+                    play: Play in a specified game
+                    observe: Observe a specified game
+                    quit: Quit the game
+                    help: Display help message""");
+        } else {
+            System.out.printf("""
+                    register: Register for a new account
+                    login: Sign into your account
+                    quit: Quit the game
+                    help: Display help message""");
+
+        }
+
     }
 
     public void quit() {
@@ -52,7 +68,7 @@ public class CLI {
 
         try {
             server.register(username, password, email);
-            isAuthorized = true;
+            this.isAuthorized = true;
         } catch (Client.BadRequestResponse e) {
             System.out.println("Username, password, and email are required fields.");
         } catch (Client.UnauthorizedResponse e) {
@@ -99,13 +115,13 @@ public class CLI {
     }
 
     public boolean processCommand(String command) {
-        HashMap<String, CLIRunnable> handlers = new HashMap<>();
+        handlers = new HashMap<>();
         handlers.put("help", () -> help());
         handlers.put("quit", () -> quit());
         handlers.put("login", () -> login());
         handlers.put("register", () -> register());
         if (isAuthorized) {
-            handlers.put("logout", () -> login());
+            handlers.put("logout", () -> logout());
             handlers.put("create", () -> create());
             handlers.put("list", () -> list());
             handlers.put("join", () -> join());
