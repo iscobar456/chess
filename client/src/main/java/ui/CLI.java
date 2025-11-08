@@ -1,14 +1,10 @@
 package ui;
 
-import com.google.gson.reflect.TypeToken;
+import chess.ChessGame;
 import serverfacade.Client;
 import serverfacade.ServerFacade;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class CLI {
     Scanner scanner;
@@ -26,7 +22,7 @@ public class CLI {
 
     private int getGameNumber(int gameID) {
         for (var game : games) {
-            if ((int) game.get("gameID") == gameID) {
+            if (((Double) game.get("gameID")).intValue() == gameID) {
                 return games.indexOf(game) + 1;
             }
         }
@@ -37,16 +33,16 @@ public class CLI {
         if (isAuthorized) {
             System.out.printf("""
                     logout: Log out of your account
-                    create: Creates a new game
+                    create <game_name>: Creates a new game
                     list: List all games
-                    play: Play in a specified game
-                    observe: Observe a specified game
+                    play <game_id> <team_color>: Play in a specified game
+                    observe <game_id>: Observe a specified game
                     quit: Quit the game
                     help: Display help message""");
         } else {
             System.out.printf("""
-                    register: Register for a new account
-                    login: Sign into your account
+                    register <username> <password> <email>: Register for a new account
+                    login <username> <password>: Sign into your account
                     quit: Quit the game
                     help: Display help message""");
 
@@ -58,29 +54,43 @@ public class CLI {
         System.out.println("Goodbye!");
     }
 
-    public void login() throws Exception {
-        System.out.printf("Username: ");
-        String username = scanner.nextLine();
-        System.out.printf("Password: ");
-        String password = scanner.nextLine();
+    public void login(String[] args) throws Exception {
+        if (isAuthorized) {
+            System.out.println("Already logged in");
+            return;
+        } else if (args.length < 2) {
+            System.out.println("Must provide username and password");
+            return;
+        }
+
+        String username = args[0];
+        String password = args[1];
 
         try {
+            if (username.isBlank() || password.isBlank()) {
+                System.out.println("Password and username are required fields.");
+            }
             server.login(username, password);
             isAuthorized = true;
         } catch (Client.BadRequestResponse e) {
-            System.out.println("Password and username are required fields.");
+            System.out.println("Username and password are required fields.");
         } catch (Client.UnauthorizedResponse e) {
             System.out.println("Incorrect username or password.");
         }
     }
 
-    public void register() throws Exception {
-        System.out.printf("Username: ");
-        String username = scanner.nextLine();
-        System.out.printf("Password: ");
-        String password = scanner.nextLine();
-        System.out.printf("Email: ");
-        String email = scanner.nextLine();
+    public void register(String[] args) throws Exception {
+        if (isAuthorized) {
+            System.out.println("Already logged in");
+            return;
+        } else if (args.length < 3) {
+            System.out.println("Must provide username, password, and email");
+            return;
+        }
+
+        String username = args[0];
+        String password = args[1];
+        String email = args[2];
 
         try {
             server.register(username, password, email);
@@ -93,85 +103,129 @@ public class CLI {
     }
 
     public void logout() throws Exception {
-        try {
-            server.logout();
-            isAuthorized = false;
-        } catch (Client.UnauthorizedResponse e) {
-            System.out.println("Not logged in.");
+        if (!isAuthorized) {
+            System.out.println("Not logged in");
+            return;
         }
+        server.logout();
+        isAuthorized = false;
     }
 
-    public void create() throws Exception {
-        System.out.printf("Game name: ");
-        String gameName = scanner.nextLine();
+    public void create(String[] args) throws Exception {
+        if (!isAuthorized) {
+            System.out.println("Not logged in");
+            return;
+        } else if (args.length == 0) {
+            System.out.println("Must provide game name");
+            return;
+        }
+
+        String gameName = args[0];
 
         try {
             int gameID = server.createGame(gameName);
+            games = server.getGames();
             System.out.printf("Game created with id %s%n", getGameNumber(gameID));
         } catch (Client.BadRequestResponse e) {
             System.out.println("Invalid game name");
-        } catch (Client.UnauthorizedResponse e) {
-            System.out.println("Not logged in");
         }
     }
 
     public void list() throws Exception {
-        try {
-            ArrayList<Map<String, Object>> games = server.listGames();
-            this.games = games;
-            System.out.println("Game : White : Black");
-            for (int i = 0; i < games.size(); i++) {
-                var game = games.get(i);
-                System.out.printf("%d) %s : %s : %s%n",
-                        i + 1, game.get("gameName"),
-                        game.getOrDefault("whiteUsername", "None"),
-                        game.getOrDefault("blackUsername", "None"));
-            }
-        } catch (Client.UnauthorizedResponse e) {
+        if (!isAuthorized) {
             System.out.println("Not logged in");
+            return;
+        }
+
+        games = server.getGames();
+        System.out.println("Game : White : Black");
+        for (int i = 0; i < games.size(); i++) {
+            var game = games.get(i);
+            System.out.printf("%d) %s : %s : %s%n",
+                    i + 1, game.get("gameName"),
+                    game.getOrDefault("whiteUsername", "None"),
+                    game.getOrDefault("blackUsername", "None"));
         }
     }
 
-    public void join() throws Exception {
-        System.out.printf("Game ID: ");
-        int gameNumber = scanner.nextInt();
-        int gameID = ((Double) games.get(gameNumber-1).get("gameID")).intValue();
+    public void join(String[] args) throws Exception {
+        if (!isAuthorized) {
+            System.out.println("Not logged in");
+            return;
+        } else if (args.length < 2) {
+            System.out.println("Must provide game ID and color");
+            return;
+        }
+
+        games = server.getGames();
 
         try {
-            server.joinGame(gameID);
-        } catch (Client.BadRequestResponse e) {
+            int gameNumber = Integer.parseInt(args[0]);
+            int gameID = ((Double) games.get(gameNumber - 1).get("gameID")).intValue();
+
+            String colorString = args[1];
+            ChessGame.TeamColor color = colorString.toLowerCase().equals("white")
+                    ? ChessGame.TeamColor.WHITE
+                    : ChessGame.TeamColor.BLACK;
+
+            server.joinGame(gameID, color);
+            System.out.printf("Joined game %s%n", gameNumber);
+        } catch (NumberFormatException e) {
             System.out.println("Invalid game ID");
-        } catch (Client.UnauthorizedResponse e) {
-            System.out.println("Not logged in");
+        } catch (Client.BadRequestResponse e) {
+            System.out.println("Invalid game ID or color");
+        } catch (Client.ForbiddenResponse e) {
+            System.out.println("Position already filled");
         }
     }
 
-    public void observe() {
-        System.out.printf("Game ID: ");
-        int gameID = scanner.nextInt();
-        observeGameID = gameID;
+    public void observe(String[] args) {
+        if (!isAuthorized) {
+            System.out.println("Not logged in");
+            return;
+        }
+
+        try {
+            if (args.length == 0) {
+                System.out.println("Must provide game ID");
+                return;
+            }
+            int gameID = Integer.parseInt(args[0]);
+            observeGameID = gameID;
+            System.out.printf("Observing game %s%n", gameID);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid game ID");
+        }
     }
 
     public interface CLIRunnable {
-        void run() throws Exception;
+        void run(String[] args) throws Exception;
     }
 
     public boolean processCommand(String command) {
         handlers = new HashMap<>();
-        handlers.put("help", () -> help());
-        handlers.put("quit", () -> quit());
-        handlers.put("login", () -> login());
-        handlers.put("register", () -> register());
-        if (isAuthorized) {
-            handlers.put("logout", () -> logout());
-            handlers.put("create", () -> create());
-            handlers.put("list", () -> list());
-            handlers.put("join", () -> join());
-            handlers.put("observe", () -> observe());
-        }
+        handlers.put("help", args -> help());
+        handlers.put("quit", args -> quit());
+        handlers.put("login", args -> login(args));
+        handlers.put("register", args -> register(args));
+        handlers.put("logout", args -> logout());
+        handlers.put("create", args -> create(args));
+        handlers.put("list", args -> list());
+        handlers.put("play", args -> join(args));
+        handlers.put("observe", args -> observe(args));
 
         try {
-            handlers.get(command).run();
+            String[] commandArray = command.split("\\s+");
+            if (commandArray.length == 0) {
+                return true;
+            }
+
+            String operation = commandArray[0];
+            if (handlers.containsKey(operation)) {
+                handlers.get(operation).run(Arrays.copyOfRange(commandArray, 1, commandArray.length));
+            } else {
+                System.out.println("Not a valid command");
+            }
         } catch (Exception e) {
             System.out.println("An error occurred and the operation was unsuccessful.");
         }

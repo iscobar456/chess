@@ -1,12 +1,13 @@
 package serverfacade;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 
 import java.lang.reflect.Type;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.ArrayList;
+
 import com.google.gson.reflect.TypeToken;
 
 public class ServerFacade {
@@ -57,21 +58,23 @@ public class ServerFacade {
         return (int) Float.parseFloat(responseBody.get("gameID").toString());
     }
 
-    public ArrayList<Map<String, Object>> listGames() throws Exception {
+    public ArrayList<Map<String, Object>> getGames() throws Exception {
         String urlString = String.format("%s/game", baseUrl);
         var response = client.sendRequest(
                 urlString, "GET", null);
         Map responseBody = Client.receiveResponse(response);
 
-        Type responseType = new TypeToken<ArrayList<Map<String, Object>>>() {}.getType();
+        Type responseType = new TypeToken<ArrayList<Map<String, Object>>>() {
+        }.getType();
         return gson.fromJson(responseBody.get("games").toString(), responseType);
     }
 
-    public void joinGame(int gameID) throws Exception{
+    public void joinGame(int gameID, ChessGame.TeamColor color) throws Exception {
         String urlString = String.format("%s/game", baseUrl);
-        var response = client.sendRequest(
-                urlString, "PUT", gson.toJson(Map.of("gameID", gameID)));
-        Map responseBody = Client.receiveResponse(response);
-        System.out.printf("Game created with id %s%n", responseBody.get("gameID"));
+        client.sendRequest(
+            urlString,
+            "PUT",
+            gson.toJson(
+                Map.of("gameID", gameID, "playerColor", color.toString())));
     }
 }
