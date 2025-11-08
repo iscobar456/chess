@@ -77,4 +77,10 @@ public class ServerFacade {
             gson.toJson(
                 Map.of("gameID", gameID, "playerColor", color.toString())));
     }
+
+    public void clear() throws Exception {
+        String urlString = String.format("%s/db", baseUrl);
+        client.sendRequest(urlString, "DELETE", null);
+        client.setAuthToken(null);
+    }
 }
