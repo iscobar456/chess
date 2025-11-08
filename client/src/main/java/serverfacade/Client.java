@@ -7,10 +7,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Client {
-    private static final HttpClient client = HttpClient.newHttpClient();
+    private final HttpClient client = HttpClient.newHttpClient();
+    private String authToken;
 
     public static class ResponseException extends Exception {
         private String message;
@@ -28,11 +30,14 @@ public class Client {
     public static class ForbiddenResponse extends ResponseException {};
     public static class ServerErrorResponse extends ResponseException {};
 
-    public static HttpResponse<String> sendRequest(String url, String method, String body)
-            throws Exception {
-        var request = HttpRequest.newBuilder(URI.create(url))
-                .method(method, requestBodyPublisher(body))
-                .build();
+    public HttpResponse<String> sendRequest(String url, String method, String body) throws Exception {
+        var requestBuilder = HttpRequest.newBuilder(URI.create(url));
+        requestBuilder.method(method, requestBodyPublisher(body));
+        if (authToken != null) {
+            requestBuilder.header("authorization", authToken);
+        }
+        var request = requestBuilder.build();
+
         var response = client.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 400) {
             throw new BadRequestResponse();
@@ -57,5 +62,9 @@ public class Client {
     public static Map receiveResponse(HttpResponse<String> response) {
         Map<String, String> responseBody = new Gson().fromJson(response.body(), Map.class);
         return responseBody;
+    }
+
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
     }
 }

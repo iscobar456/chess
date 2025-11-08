@@ -2,6 +2,7 @@ package server;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import dataaccess.*;
@@ -21,7 +22,7 @@ public class Server {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
         DataAccess dataAccess = new SQLDataAccess();
         Service service = new Service(dataAccess);
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().serializeNulls().create();
 
         javalin.post("/user", ctx -> {
             UserData registerBody = gson.fromJson(ctx.body(), UserData.class);

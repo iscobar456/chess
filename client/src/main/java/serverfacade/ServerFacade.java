@@ -2,17 +2,22 @@ package serverfacade;
 
 import com.google.gson.Gson;
 
+import java.lang.reflect.Type;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
+import java.util.ArrayList;
+import com.google.gson.reflect.TypeToken;
 
 public class ServerFacade {
     private String authToken;
     private String baseUrl;
     private Gson gson = new Gson();
+    private Client client;
 
     public ServerFacade(String protocol, String host, int port) {
         baseUrl = String.format("%s://%s:%d", protocol, host, port);
+        client = new Client();
     }
 
     public String getAuthToken() {
@@ -21,57 +26,52 @@ public class ServerFacade {
 
     public void register(String username, String password, String email) throws Exception {
         String urlString = String.format("%s/user", baseUrl);
-        HttpResponse<String> response = Client.sendRequest(
+        HttpResponse<String> response = client.sendRequest(
                 urlString,
                 "POST",
                 gson.toJson(
                         Map.of("username", username, "password", password, "email", email)));
         Map<String, String> responseBody = Client.receiveResponse(response);
-        authToken = responseBody.get("authToken");
+        client.setAuthToken(responseBody.get("authToken"));
     }
 
     public void login(String username, String password) throws Exception {
         String urlString = String.format("%s/session", baseUrl);
-        HttpResponse<String> response = Client.sendRequest(
+        HttpResponse<String> response = client.sendRequest(
                 urlString, "POST", gson.toJson(Map.of("username", username, "password", password)));
         Map<String, String> responseBody = Client.receiveResponse(response);
-        authToken = responseBody.get("authToken");
+        client.setAuthToken(responseBody.get("authToken"));
     }
 
     public void logout() throws Exception {
         String urlString = String.format("%s/session", baseUrl);
-        var response = Client.sendRequest(urlString, "DELETE", null);
+        client.sendRequest(urlString, "DELETE", null);
+        client.setAuthToken(null);
     }
 
-    public void createGame(String gameName) {
-
+    public int createGame(String gameName) throws Exception {
+        String urlString = String.format("%s/game", baseUrl);
+        var response = client.sendRequest(
+                urlString, "POST", gson.toJson(Map.of("gameName", gameName)));
+        Map responseBody = Client.receiveResponse(response);
+        return (int) Float.parseFloat(responseBody.get("gameID").toString());
     }
 
-    public void listGames() {
+    public ArrayList<Map<String, Object>> listGames() throws Exception {
+        String urlString = String.format("%s/game", baseUrl);
+        var response = client.sendRequest(
+                urlString, "GET", null);
+        Map responseBody = Client.receiveResponse(response);
 
+        Type responseType = new TypeToken<ArrayList<Map<String, Object>>>() {}.getType();
+        return gson.fromJson(responseBody.get("games").toString(), responseType);
     }
 
-    public void joinGame(int gameID) {
-
+    public void joinGame(int gameID) throws Exception{
+        String urlString = String.format("%s/game", baseUrl);
+        var response = client.sendRequest(
+                urlString, "PUT", gson.toJson(Map.of("gameID", gameID)));
+        Map responseBody = Client.receiveResponse(response);
+        System.out.printf("Game created with id %s%n", responseBody.get("gameID"));
     }
-
-    private record LoginRequest(String username, String password) {
-    }
-
-    ;
-
-    private record RegisterRequest(String username, String password, String email) {
-    }
-
-    ;
-
-    private record CreateGameRequest(String gameName) {
-    }
-
-    ;
-
-    private record JoinGameRequest(int gameID) {
-    }
-
-    ;
 }

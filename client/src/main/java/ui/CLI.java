@@ -1,9 +1,13 @@
 package ui;
 
+import com.google.gson.reflect.TypeToken;
 import serverfacade.Client;
 import serverfacade.ServerFacade;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class CLI {
@@ -11,10 +15,22 @@ public class CLI {
     ServerFacade server;
     boolean isAuthorized = false;
     HashMap<String, CLIRunnable> handlers;
+    ArrayList<Map<String, Object>> games;
+    int observeGameID;
 
     public CLI() {
         scanner = new Scanner(System.in);
         server = new ServerFacade("http", "localhost", 8080);
+        games = new ArrayList<>();
+    }
+
+    private int getGameNumber(int gameID) {
+        for (var game : games) {
+            if ((int) game.get("gameID") == gameID) {
+                return games.indexOf(game) + 1;
+            }
+        }
+        return -1;
     }
 
     public void help() {
@@ -86,28 +102,54 @@ public class CLI {
     }
 
     public void create() throws Exception {
-//        System.out.printf("Game name: ");
-//        String gameName = scanner.nextLine();
-//
-//        try {
-//            server.createGame(gameName);
-//        } catch (Client.BadRequestResponse e) {
-//            System.out.println("");
-//        } catch (Client.UnauthorizedResponse e) {
-//            System.out.println("Incorrect username or password.");
-//        }
+        System.out.printf("Game name: ");
+        String gameName = scanner.nextLine();
+
+        try {
+            int gameID = server.createGame(gameName);
+            System.out.printf("Game created with id %s%n", getGameNumber(gameID));
+        } catch (Client.BadRequestResponse e) {
+            System.out.println("Invalid game name");
+        } catch (Client.UnauthorizedResponse e) {
+            System.out.println("Not logged in");
+        }
     }
 
-    public void list() {
-
+    public void list() throws Exception {
+        try {
+            ArrayList<Map<String, Object>> games = server.listGames();
+            this.games = games;
+            System.out.println("Game : White : Black");
+            for (int i = 0; i < games.size(); i++) {
+                var game = games.get(i);
+                System.out.printf("%d) %s : %s : %s%n",
+                        i + 1, game.get("gameName"),
+                        game.getOrDefault("whiteUsername", "None"),
+                        game.getOrDefault("blackUsername", "None"));
+            }
+        } catch (Client.UnauthorizedResponse e) {
+            System.out.println("Not logged in");
+        }
     }
 
-    public void join() {
+    public void join() throws Exception {
+        System.out.printf("Game ID: ");
+        int gameNumber = scanner.nextInt();
+        int gameID = ((Double) games.get(gameNumber-1).get("gameID")).intValue();
 
+        try {
+            server.joinGame(gameID);
+        } catch (Client.BadRequestResponse e) {
+            System.out.println("Invalid game ID");
+        } catch (Client.UnauthorizedResponse e) {
+            System.out.println("Not logged in");
+        }
     }
 
     public void observe() {
-
+        System.out.printf("Game ID: ");
+        int gameID = scanner.nextInt();
+        observeGameID = gameID;
     }
 
     public interface CLIRunnable {
