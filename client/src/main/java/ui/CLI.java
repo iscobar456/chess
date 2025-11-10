@@ -2,6 +2,7 @@ package ui;
 
 import chess.ChessGame;
 import serverfacade.Client;
+import serverfacade.GamesResponse;
 import serverfacade.ServerFacade;
 
 import java.util.*;
@@ -11,7 +12,7 @@ public class CLI {
     ServerFacade server;
     boolean isAuthorized = false;
     HashMap<String, CLIRunnable> handlers;
-    ArrayList<Map<String, Object>> games;
+    ArrayList<GamesResponse.GameData> games;
     int observeGameID;
 
     public CLI() {
@@ -22,7 +23,7 @@ public class CLI {
 
     private int getGameNumber(int gameID) {
         for (var game : games) {
-            if (((Double) game.get("gameID")).intValue() == gameID) {
+            if (game.gameID() == gameID) {
                 return games.indexOf(game) + 1;
             }
         }
@@ -31,7 +32,7 @@ public class CLI {
 
     public void help() {
         if (isAuthorized) {
-            System.out.printf("""
+            System.out.print("""
                     logout: Log out of your account
                     create <game_name>: Creates a new game
                     list: List all games
@@ -40,7 +41,7 @@ public class CLI {
                     quit: Quit the game
                     help: Display help message""");
         } else {
-            System.out.printf("""
+            System.out.print("""
                     register <username> <password> <email>: Register for a new account
                     login <username> <password>: Sign into your account
                     quit: Quit the game
@@ -142,9 +143,9 @@ public class CLI {
         for (int i = 0; i < games.size(); i++) {
             var game = games.get(i);
             System.out.printf("%d) %s : %s : %s%n",
-                    i + 1, game.get("gameName"),
-                    game.getOrDefault("whiteUsername", "None"),
-                    game.getOrDefault("blackUsername", "None"));
+                    i + 1, game.gameName(),
+                    game.whiteUsername(),
+                    game.blackUsername());
         }
     }
 
@@ -161,15 +162,16 @@ public class CLI {
 
         try {
             int gameNumber = Integer.parseInt(args[0]);
-            int gameID = ((Double) games.get(gameNumber - 1).get("gameID")).intValue();
+            int gameID = games.get(gameNumber - 1).gameID();
 
             String colorString = args[1];
-            ChessGame.TeamColor color = colorString.toLowerCase().equals("white")
+            ChessGame.TeamColor color = colorString.equalsIgnoreCase("white")
                     ? ChessGame.TeamColor.WHITE
                     : ChessGame.TeamColor.BLACK;
 
             server.joinGame(gameID, color);
-            System.out.printf("Joined game %s%n", gameNumber);
+            BoardView view = new BoardView(games.get(gameNumber).game(), color);
+            System.out.println(view.render());
         } catch (NumberFormatException e) {
             System.out.println("Invalid game ID");
         } catch (Client.BadRequestResponse e) {
@@ -206,13 +208,13 @@ public class CLI {
         handlers = new HashMap<>();
         handlers.put("help", args -> help());
         handlers.put("quit", args -> quit());
-        handlers.put("login", args -> login(args));
-        handlers.put("register", args -> register(args));
+        handlers.put("login", this::login);
+        handlers.put("register", this::register);
         handlers.put("logout", args -> logout());
-        handlers.put("create", args -> create(args));
+        handlers.put("create", this::create);
         handlers.put("list", args -> list());
-        handlers.put("play", args -> join(args));
-        handlers.put("observe", args -> observe(args));
+        handlers.put("play", this::join);
+        handlers.put("observe", this::observe);
 
         try {
             String[] commandArray = command.split("\\s+");

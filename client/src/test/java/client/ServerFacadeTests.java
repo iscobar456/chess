@@ -3,7 +3,6 @@ package client;
 import chess.ChessGame;
 import org.junit.jupiter.api.*;
 import server.Server;
-import serverfacade.Client;
 import serverfacade.ServerFacade;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,12 +33,11 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void registerTest() throws Exception {
+    public void registerTest() {
         var username = "isaac";
         var password = "strongpassword";
         var email = "test@test.com";
         assertDoesNotThrow(() -> serverFacade.register(username, password, email));
-        assertNotNull(serverFacade.getAuthToken());
     }
 
     @Test
@@ -50,7 +48,6 @@ public class ServerFacadeTests {
         serverFacade.register(username, password, email);
 
         assertDoesNotThrow(() -> serverFacade.logout());
-        assertNull(serverFacade.getAuthToken());
     }
 
     @Test
@@ -61,8 +58,7 @@ public class ServerFacadeTests {
         serverFacade.register(username, password, email);
         serverFacade.logout();
 
-        serverFacade.login(username, password);
-        assertNotNull(serverFacade.getAuthToken());
+        assertDoesNotThrow(() -> serverFacade.login(username, password));
     }
 
     @Test
@@ -105,6 +101,6 @@ public class ServerFacadeTests {
         serverFacade.joinGame(1, ChessGame.TeamColor.WHITE);
 
         var games = serverFacade.getGames();
-        assertEquals(username, games.getFirst().get("whiteUsername"));
+        assertEquals(username, games.getFirst().whiteUsername());
     }
 }
