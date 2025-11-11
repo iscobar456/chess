@@ -17,19 +17,19 @@ public class BoardView {
 
     private void setBorderLabels() {
         for (int i = 0; i < 8; i++) {
-            board[0][1 + i].setContent((char) (65 + i));
-            board[9][1 + i].setContent((char) (65 + i));
-            board[1 + i][0].setContent(Integer.toString(8 - i).charAt(0));
-            board[1 + i][9].setContent(Integer.toString(8 - i).charAt(0));
+            board[0][1 + i].setContent(String.valueOf((char) (65 + i)));
+            board[9][1 + i].setContent(String.valueOf((char) (65 + i)));
+            board[1 + i][0].setContent(Integer.toString(8 - i));
+            board[1 + i][9].setContent(Integer.toString(8 - i));
         }
     }
 
     private void constructBorders() {
         for (int i = 0; i < 9; i++) {
-            board[0][0 + i] = new Tile((char) 254, (char) 232, (char) 0);
-            board[0 + i][9] = new Tile((char) 254, (char) 232, (char) 0);
-            board[9][9 - i] = new Tile((char) 254, (char) 232, (char) 0);
-            board[9 - i][0] = new Tile((char) 254, (char) 232, (char) 0);
+            board[0][0 + i] = new Tile((char) 254, (char) 232, " ");
+            board[0 + i][9] = new Tile((char) 254, (char) 232, " ");
+            board[9][9 - i] = new Tile((char) 254, (char) 232, " ");
+            board[9 - i][0] = new Tile((char) 254, (char) 232, " ");
         }
         setBorderLabels();
     }
@@ -38,9 +38,9 @@ public class BoardView {
         for (int i = 1; i < 9; i++) {
             for (int j = 1; j < 9; j++) {
                 if ((i + j) % 2 == 0) {
-                    board[i][j] = new Tile((char) 252, (char) 0, (char) 0);
+                    board[i][j] = new Tile((char) 252, (char) 0, " ");
                 } else {
-                    board[i][j] = new Tile((char) 243, (char) 0, (char) 0);
+                    board[i][j] = new Tile((char) 243, (char) 0, " ");
                 }
             }
         }
@@ -52,8 +52,11 @@ public class BoardView {
     }
 
     private void placePiece(ChessPiece piece, ChessPosition pos) {
+        if (piece == null) {
+            return;
+        }
         Tile tile = board[pos.getRow()][pos.getColumn()];
-        tile.setContent(piece.toString().charAt(0));
+        tile.setContent(piece.toString());
         tile.setFg(piece.getTeamColor() == ChessGame.TeamColor.WHITE
                 ? (char) 255
                 : (char) 232);
@@ -62,7 +65,7 @@ public class BoardView {
     private void placePieces() {
         for (int i = 1; i < 9; i++) {
             for (int j = 1; j < 9; j++) {
-                ChessPiece piece = game.getBoard().getBoard()[i][j];
+                ChessPiece piece = game.getBoard().getBoard()[i-1][j-1];
                 ChessPosition pos = new ChessPosition(i, j);
                 placePiece(piece, pos);
             }

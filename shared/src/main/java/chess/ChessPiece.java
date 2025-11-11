@@ -10,18 +10,18 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessPiece {
-    static final String WHITE_KING = " ♔ ";
-    static final String WHITE_QUEEN = " ♕ ";
-    static final String WHITE_BISHOP = " ♗ ";
-    static final String WHITE_KNIGHT = " ♘ ";
-    static final String WHITE_ROOK = " ♖ ";
-    static final String WHITE_PAWN = " ♙ ";
-    static final String BLACK_KING = " ♚ ";
-    static final String BLACK_QUEEN = " ♛ ";
-    public static final String BLACK_BISHOP = " ♝ ";
-    static final String BLACK_KNIGHT = " ♞ ";
-    static final String BLACK_ROOK = " ♜ ";
-    static final String BLACK_PAWN = " ♟ ";
+    static final String WHITE_KING = "♔";
+    static final String WHITE_QUEEN = "♕";
+    static final String WHITE_BISHOP = "♗";
+    static final String WHITE_KNIGHT = "♘";
+    static final String WHITE_ROOK = "♖";
+    static final String WHITE_PAWN = "♙";
+    static final String BLACK_KING = "♚";
+    static final String BLACK_QUEEN = "♛";
+    public static final String BLACK_BISHOP = "♝";
+    static final String BLACK_KNIGHT = "♞";
+    static final String BLACK_ROOK = "♜";
+    static final String BLACK_PAWN = "♟";
 
     private ChessGame.TeamColor color;
     private PieceType type;

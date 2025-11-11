@@ -2,7 +2,10 @@ package serverfacade;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.ArrayList;
@@ -68,14 +71,14 @@ public class ServerFacade {
         return (int) Float.parseFloat(responseBody.get("gameID").toString());
     }
 
-    public ArrayList<GamesResponse.GameData> getGames() throws Exception {
+    public ArrayList<GameData> getGames() throws Exception {
         String urlString = String.format("%s/game", baseUrl);
         var response = client.sendRequest(
                 urlString, "GET", null);
         Map responseBody = Client.receiveResponse(response);
 
-        GamesResponse gamesResponse = gson.fromJson(responseBody.get("games").toString(), GamesResponse.class);
-        return gamesResponse.getGames();
+        Type gamesType = new TypeToken<ArrayList<GameData>>() {}.getType();
+        return gson.fromJson(responseBody.get("games").toString(), gamesType);
     }
 
     public void joinGame(int gameID, ChessGame.TeamColor color) throws Exception {

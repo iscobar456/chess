@@ -3,9 +3,9 @@ package ui;
 public class Tile {
     private char bg;
     private char fg;
-    private Character content;
+    private String content;
 
-    public Tile(char bg, char fg, Character content) {
+    public Tile(char bg, char fg, String content) {
         this.bg = bg;
         this.fg = fg;
         this.content = content;
@@ -13,7 +13,7 @@ public class Tile {
 
     @Override
     public String toString() {
-        return String.format("\033[48;5;%d;38;5;%dm%s\033[0m", getBg(), getFg(), getContent());
+        return String.format("\u001B[48;5;%d;38;5;%dm %s \u001B[0m", (int) bg, (int) fg, content == null ? "" : content.toString());
     }
 
     public char getBg() {
@@ -32,11 +32,11 @@ public class Tile {
         this.fg = fg;
     }
 
-    public Character getContent() {
+    public String getContent() {
         return content;
     }
 
-    public void setContent(Character content) {
+    public void setContent(String content) {
         this.content = content;
     }
 }

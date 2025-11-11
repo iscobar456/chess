@@ -2,7 +2,7 @@ package ui;
 
 import chess.ChessGame;
 import serverfacade.Client;
-import serverfacade.GamesResponse;
+import serverfacade.GameData;
 import serverfacade.ServerFacade;
 
 import java.util.*;
@@ -12,7 +12,7 @@ public class CLI {
     ServerFacade server;
     boolean isAuthorized = false;
     HashMap<String, CLIRunnable> handlers;
-    ArrayList<GamesResponse.GameData> games;
+    ArrayList<GameData> games;
     int observeGameID;
 
     public CLI() {
@@ -170,7 +170,7 @@ public class CLI {
                     : ChessGame.TeamColor.BLACK;
 
             server.joinGame(gameID, color);
-            BoardView view = new BoardView(games.get(gameNumber).game(), color);
+            BoardView view = new BoardView(games.get(gameNumber - 1).game(), color);
             System.out.println(view.render());
         } catch (NumberFormatException e) {
             System.out.println("Invalid game ID");
@@ -181,20 +181,20 @@ public class CLI {
         }
     }
 
-    public void observe(String[] args) {
+    public void observe(String[] args) throws Exception {
         if (!isAuthorized) {
             System.out.println("Not logged in");
+            return;
+        } else if (args.length == 0) {
+            System.out.println("Must provide game ID");
             return;
         }
 
         try {
-            if (args.length == 0) {
-                System.out.println("Must provide game ID");
-                return;
-            }
-            int gameID = Integer.parseInt(args[0]);
-            observeGameID = gameID;
-            System.out.printf("Observing game %s%n", gameID);
+            games = server.getGames();
+            int gameNumber = Integer.parseInt(args[0]);
+            BoardView view = new BoardView(games.get(gameNumber - 1).game(), ChessGame.TeamColor.WHITE);
+            System.out.print(view.render());
         } catch (NumberFormatException e) {
             System.out.println("Invalid game ID");
         }
