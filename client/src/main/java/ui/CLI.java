@@ -33,19 +33,21 @@ public class CLI {
     public void help() {
         if (isAuthorized) {
             System.out.print("""
-                    logout: Log out of your account
-                    create <game_name>: Creates a new game
-                    list: List all games
-                    play <game_id> <team_color>: Play in a specified game
-                    observe <game_id>: Observe a specified game
-                    quit: Quit the game
-                    help: Display help message""");
+                    |-----------COMMAND-----------:-----------INFO-----------|
+                    | logout                      : Log out of your account  |
+                    | create <game_name>          : Creates a new game       |
+                    | list                        : List all games           | 
+                    | play <game_id> <team_color> : Play in a specified game |
+                    | observe <game_id>           : Observe a specified game |
+                    | quit                        : Quit the game            |
+                    | help                        : Display help message     |""");
         } else {
             System.out.print("""
-                    register <username> <password> <email>: Register for a new account
-                    login <username> <password>: Sign into your account
-                    quit: Quit the game
-                    help: Display help message""");
+                    |----------------COMMAND-----------------:------------INFO------------|
+                    | register <username> <password> <email> : Register for a new account |
+                    | login <username> <password>            : Sign into your account     |
+                    | quit                                   : Quit the game              |
+                    | help                                   : Display help message       |""");
 
         }
 
