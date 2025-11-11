@@ -3,7 +3,9 @@ package client;
 import chess.ChessGame;
 import org.junit.jupiter.api.*;
 import server.Server;
+import serverfacade.Client;
 import serverfacade.ServerFacade;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -17,8 +19,7 @@ public class ServerFacadeTests {
         server = new Server();
         var port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
-        serverFacade = new ServerFacade("https", "localhost", 8080);
-        serverFacade.clear();
+        serverFacade = new ServerFacade("http", "localhost", 8080);
     }
 
     @AfterAll
@@ -26,6 +27,10 @@ public class ServerFacadeTests {
         server.stop();
     }
 
+    @BeforeEach
+    public void clearDatabase() throws Exception {
+        serverFacade.clear();
+    }
 
     @Test
     public void sampleTest() {
@@ -38,6 +43,15 @@ public class ServerFacadeTests {
         var password = "strongpassword";
         var email = "test@test.com";
         assertDoesNotThrow(() -> serverFacade.register(username, password, email));
+        assertTrue(serverFacade.getIsAuthorized());
+    }
+
+    @Test
+    public void registerTestMissingArg() throws Exception {
+        var username = "isaac";
+        var password = "strongpassword";
+        var email = " ";
+        assertThrows(Client.BadRequestResponse.class, () -> serverFacade.register(username, password, email));
     }
 
     @Test
@@ -48,6 +62,12 @@ public class ServerFacadeTests {
         serverFacade.register(username, password, email);
 
         assertDoesNotThrow(() -> serverFacade.logout());
+        assertFalse(serverFacade.getIsAuthorized());
+    }
+
+    @Test
+    public void logoutNotLoggedIn() throws Exception {
+        assertThrows(Client.UnauthorizedResponse.class, () -> serverFacade.logout());
     }
 
     @Test
@@ -58,7 +78,19 @@ public class ServerFacadeTests {
         serverFacade.register(username, password, email);
         serverFacade.logout();
 
-        assertDoesNotThrow(() -> serverFacade.login(username, password));
+        serverFacade.login(username, password);
+        assertTrue(serverFacade.getIsAuthorized());
+    }
+
+    @Test
+    public void loginMissingInput() throws Exception {
+        var username = "isaac";
+        var password = "strongpassword";
+        var email = "test@test.com";
+        serverFacade.register(username, password, email);
+        serverFacade.logout();
+
+        assertThrows(Client.BadRequestResponse.class, () -> serverFacade.login(username, "  "));
     }
 
     @Test
@@ -71,6 +103,16 @@ public class ServerFacadeTests {
         var gameName = "game1";
         serverFacade.createGame(gameName);
         assertNotEquals(0, serverFacade.getGames().size());
+    }
+
+    @Test
+    public void createGameMissingName() throws Exception {
+        var username = "isaac";
+        var password = "strongpassword";
+        var email = "test@test.com";
+        serverFacade.register(username, password, email);
+
+        assertThrows(Client.BadRequestResponse.class, () -> serverFacade.createGame("  "));
     }
 
     @Test
@@ -89,6 +131,11 @@ public class ServerFacadeTests {
     }
 
     @Test
+    public void getGamesUnauthorized() throws Exception {
+        assertThrows(Client.UnauthorizedResponse.class, () -> serverFacade.getGames());
+    }
+
+    @Test
     public void joinGame() throws Exception {
         var username = "isaac";
         var password = "strongpassword";
@@ -102,5 +149,18 @@ public class ServerFacadeTests {
 
         var games = serverFacade.getGames();
         assertEquals(username, games.getFirst().whiteUsername());
+    }
+
+    @Test
+    public void joinGameInvalidID() throws Exception {
+        var username = "isaac";
+        var password = "strongpassword";
+        var email = "test@test.com";
+        serverFacade.register(username, password, email);
+
+        var gameName = "game1";
+        serverFacade.createGame(gameName);
+
+        assertThrows(Client.BadRequestResponse.class, () -> serverFacade.joinGame(2, ChessGame.TeamColor.WHITE));
     }
 }
