@@ -87,16 +87,16 @@ public class BoardView {
         constructEmptyBoard();
         placePieces();
 
+        if (perspective == ChessGame.TeamColor.BLACK) {
+            invertBoard();
+        }
+
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 output.append(board[i][j].toString());
             }
             output.append('\n');
-        }
-
-        if (perspective == ChessGame.TeamColor.BLACK) {
-            invertBoard();
         }
 
         return output.toString();

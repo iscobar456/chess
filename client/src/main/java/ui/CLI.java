@@ -33,14 +33,14 @@ public class CLI {
     public void help() {
         if (isAuthorized) {
             System.out.print("""
-                    |-----------COMMAND-----------:-----------INFO-----------|
-                    | logout                      : Log out of your account  |
-                    | create <game_name>          : Creates a new game       |
-                    | list                        : List all games           | 
-                    | play <game_id> <team_color> : Play in a specified game |
-                    | observe <game_id>           : Observe a specified game |
-                    | quit                        : Quit the game            |
-                    | help                        : Display help message     |""");
+                    |-----------COMMAND------------:-----------INFO-----------|
+                    | create <game_name>           : Creates a new game       |
+                    | list                         : List all games           |
+                    | join <game_id> [WHITE|BLACK] : Play in a specified game |
+                    | observe <game_id>            : Observe a specified game |
+                    | logout                       : Log out of your account  |
+                    | quit                         : Quit the game            |
+                    | help                         : Display help message     |""");
         } else {
             System.out.print("""
                     |----------------COMMAND-----------------:------------INFO------------|
@@ -173,8 +173,10 @@ public class CLI {
 
             server.joinGame(gameID, color);
             BoardView view = new BoardView(games.get(gameNumber - 1).game(), color);
-            System.out.println(view.render());
+            System.out.print(view.render());
         } catch (NumberFormatException e) {
+            System.out.println("Invalid game ID");
+        } catch (IndexOutOfBoundsException e) {
             System.out.println("Invalid game ID");
         } catch (Client.BadRequestResponse e) {
             System.out.println("Invalid game ID or color");
@@ -215,7 +217,7 @@ public class CLI {
         handlers.put("logout", args -> logout());
         handlers.put("create", this::create);
         handlers.put("list", args -> list());
-        handlers.put("play", this::join);
+        handlers.put("join", this::join);
         handlers.put("observe", this::observe);
 
         try {
