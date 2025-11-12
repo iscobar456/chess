@@ -66,7 +66,7 @@ public class BoardView {
         for (int i = 1; i < 9; i++) {
             for (int j = 1; j < 9; j++) {
                 ChessPiece piece = game.getBoard().getBoard()[i-1][j-1];
-                ChessPosition pos = new ChessPosition(i, j);
+                ChessPosition pos = new ChessPosition(9 - i, j);
                 placePiece(piece, pos);
             }
         }

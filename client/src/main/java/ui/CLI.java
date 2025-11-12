@@ -146,8 +146,8 @@ public class CLI {
             var game = games.get(i);
             System.out.printf("%d) %s : %s : %s%n",
                     i + 1, game.gameName(),
-                    game.whiteUsername(),
-                    game.blackUsername());
+                    game.whiteUsername() == null ? "none" : game.whiteUsername(),
+                    game.blackUsername() == null ? "none": game.blackUsername());
         }
     }
 
