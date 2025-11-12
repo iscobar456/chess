@@ -75,6 +75,7 @@ public class CLI {
             }
             server.login(username, password);
             isAuthorized = true;
+            System.out.printf("Logged in as %s%n", username);
         } catch (Client.BadRequestResponse e) {
             System.out.println("Username and password are required fields.");
         } catch (Client.UnauthorizedResponse e) {
@@ -98,6 +99,7 @@ public class CLI {
         try {
             server.register(username, password, email);
             this.isAuthorized = true;
+            System.out.printf("Logged in as %s%n", username);
         } catch (Client.BadRequestResponse e) {
             System.out.println("Username, password, and email are required fields.");
         } catch (Client.UnauthorizedResponse e) {
@@ -112,6 +114,7 @@ public class CLI {
         }
         server.logout();
         isAuthorized = false;
+        System.out.println("Logged out");
     }
 
     public void create(String[] args) throws Exception {
@@ -147,7 +150,7 @@ public class CLI {
             System.out.printf("%d) %s : %s : %s%n",
                     i + 1, game.gameName(),
                     game.whiteUsername() == null ? "none" : game.whiteUsername(),
-                    game.blackUsername() == null ? "none": game.blackUsername());
+                    game.blackUsername() == null ? "none" : game.blackUsername());
         }
     }
 
@@ -167,9 +170,15 @@ public class CLI {
             int gameID = games.get(gameNumber - 1).gameID();
 
             String colorString = args[1];
-            ChessGame.TeamColor color = colorString.equalsIgnoreCase("white")
-                    ? ChessGame.TeamColor.WHITE
-                    : ChessGame.TeamColor.BLACK;
+            ChessGame.TeamColor color;
+            if (colorString.equalsIgnoreCase("white")) {
+                color = ChessGame.TeamColor.WHITE;
+            } else if (colorString.equalsIgnoreCase("black")) {
+                color = ChessGame.TeamColor.WHITE;
+            } else {
+                System.out.println("Color must be white or black");
+                return;
+            }
 
             server.joinGame(gameID, color);
             BoardView view = new BoardView(games.get(gameNumber - 1).game(), color);
