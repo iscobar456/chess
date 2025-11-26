@@ -38,6 +38,24 @@ public class ChessPosition {
         return col;
     }
 
+    private int charToPosInt(char c) throws Exception {
+        if (c > 48 && c < 57) {
+            return (int)(c-48);
+        } else if (c > 64 && c < 73) {
+            return (int)(c-64);
+        } else {
+            throw new Exception("Invalid position");
+        }
+    }
+
+    public ChessPosition(String pos) throws Exception {
+        if (pos.length() != 2) {
+            throw new Exception("Invalid position");
+        }
+        row = charToPosInt(pos.charAt(1));
+        col = charToPosInt(pos.charAt(0));
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {

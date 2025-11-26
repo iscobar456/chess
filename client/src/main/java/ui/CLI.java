@@ -1,6 +1,9 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import serverfacade.Client;
 import serverfacade.GameData;
 import serverfacade.ServerFacade;
@@ -13,12 +16,15 @@ public class CLI {
     boolean isAuthorized = false;
     HashMap<String, CLIRunnable> handlers;
     ArrayList<GameData> games;
-    int observeGameID;
+    ChessGame observedGame;
+    boolean inGameMode;
 
     public CLI() {
         scanner = new Scanner(System.in);
         server = new ServerFacade("http", "localhost", 8080);
         games = new ArrayList<>();
+        handlers = constructHandlerMap();
+        inGameMode = false;
     }
 
     private int getGameNumber(int gameID) {
@@ -58,10 +64,7 @@ public class CLI {
     }
 
     public void login(String[] args) throws Exception {
-        if (isAuthorized) {
-            System.out.println("Already logged in");
-            return;
-        } else if (args.length < 2) {
+        if (args.length < 2) {
             System.out.println("Must provide username and password");
             return;
         }
@@ -84,10 +87,7 @@ public class CLI {
     }
 
     public void register(String[] args) throws Exception {
-        if (isAuthorized) {
-            System.out.println("Already logged in");
-            return;
-        } else if (args.length < 3) {
+        if (args.length < 3) {
             System.out.println("Must provide username, password, and email");
             return;
         }
@@ -108,20 +108,13 @@ public class CLI {
     }
 
     public void logout() throws Exception {
-        if (!isAuthorized) {
-            System.out.println("Not logged in");
-            return;
-        }
         server.logout();
         isAuthorized = false;
         System.out.println("Logged out");
     }
 
     public void create(String[] args) throws Exception {
-        if (!isAuthorized) {
-            System.out.println("Not logged in");
-            return;
-        } else if (args.length == 0) {
+        if (args.length == 0) {
             System.out.println("Must provide game name");
             return;
         }
@@ -130,7 +123,6 @@ public class CLI {
 
         try {
             int gameID = server.createGame(gameName);
-            games = server.getGames();
             System.out.printf("Game created with id %s%n", getGameNumber(gameID));
         } catch (Client.BadRequestResponse e) {
             System.out.println("Invalid game name");
@@ -138,12 +130,6 @@ public class CLI {
     }
 
     public void list() throws Exception {
-        if (!isAuthorized) {
-            System.out.println("Not logged in");
-            return;
-        }
-
-        games = server.getGames();
         System.out.println("Game : White : Black");
         for (int i = 0; i < games.size(); i++) {
             var game = games.get(i);
@@ -155,15 +141,11 @@ public class CLI {
     }
 
     public void join(String[] args) throws Exception {
-        if (!isAuthorized) {
-            System.out.println("Not logged in");
-            return;
-        } else if (args.length < 2) {
+        if (args.length < 2) {
             System.out.println("Must provide game ID and color");
             return;
         }
 
-        games = server.getGames();
 
         try {
             int gameNumber = Integer.parseInt(args[0]);
@@ -181,8 +163,8 @@ public class CLI {
             }
 
             server.joinGame(gameID, color);
-            BoardView view = new BoardView(games.get(gameNumber - 1).game(), color);
-            System.out.print(view.render());
+            setObservedGame(Integer.parseInt(args[0]) - 1);
+            inGameMode = true;
         } catch (NumberFormatException e) {
             System.out.println("Invalid game ID");
         } catch (IndexOutOfBoundsException e) {
@@ -195,40 +177,85 @@ public class CLI {
     }
 
     public void observe(String[] args) throws Exception {
-        if (!isAuthorized) {
-            System.out.println("Not logged in");
-            return;
-        } else if (args.length == 0) {
+        if (args.length == 0) {
             System.out.println("Must provide game ID");
             return;
         }
 
         try {
-            games = server.getGames();
-            int gameNumber = Integer.parseInt(args[0]);
-            BoardView view = new BoardView(games.get(gameNumber - 1).game(), ChessGame.TeamColor.WHITE);
-            System.out.print(view.render());
+            setObservedGame(Integer.parseInt(args[0]) - 1);
+            renderGame();
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("Invalid game ID");
         } catch (NumberFormatException e) {
             System.out.println("Invalid game ID");
         }
+    }
+
+
+
+    private void makeMove(String[] args) {
+        if (args.length < 2) {
+            System.out.println("Must provide a starting and ending position. (e.g., B2 C2)");
+            return;
+        }
+
+        try {
+            ChessPosition start = new ChessPosition(args[0]);
+            ChessPosition end = new ChessPosition(args[1]);
+            ChessPiece.PieceType type = null;
+            if (args.length > 2) {
+                type = ChessPiece.stringToType(args[3]);
+            }
+            ChessMove move = new ChessMove(start, end, type);
+            observedGame.makeMove(move);
+        } catch (Exception e) {
+            System.out.println("Must provide a starting, ending position, " +
+                    "and a promotion piece if applicable. (e.g., B3 A4 QUEEN)");
+        }
+    }
+
+    private void renderGame() {
+        BoardView view = new BoardView(observedGame, ChessGame.TeamColor.WHITE);
+        System.out.print(view.render());
+    }
+
+    private void setObservedGame(int id) throws IndexOutOfBoundsException {
+        observedGame = games.get(id).game();
     }
 
     public interface CLIRunnable {
         void run(String[] args) throws Exception;
     }
 
-    public boolean processCommand(String command) {
-        handlers = new HashMap<>();
-        handlers.put("help", args -> help());
-        handlers.put("quit", args -> quit());
-        handlers.put("login", this::login);
-        handlers.put("register", this::register);
-        handlers.put("logout", args -> logout());
-        handlers.put("create", this::create);
-        handlers.put("list", args -> list());
-        handlers.put("join", this::join);
-        handlers.put("observe", this::observe);
+    public void handleAuthorization(String operation) throws Exception {
+        if (operation.equalsIgnoreCase("login")
+                || operation.equalsIgnoreCase("register")) {
+            if (isAuthorized) {
+                throw new Exception("Already logged in");
+            }
+        } else {
+            if (!isAuthorized) {
+                throw new Exception("Not logged in");
+            }
+        }
+    }
 
+    private HashMap<String, CLIRunnable> constructHandlerMap() {
+        HashMap<String, CLIRunnable> handlerMap = new HashMap<>();
+        handlerMap.put("help", args -> help());
+        handlerMap.put("quit", args -> quit());
+        handlerMap.put("login", this::login);
+        handlerMap.put("register", this::register);
+        handlerMap.put("logout", args -> logout());
+        handlerMap.put("create", this::create);
+        handlerMap.put("list", args -> list());
+        handlerMap.put("join", this::join);
+        handlerMap.put("observe", this::observe);
+        return handlerMap;
+    }
+
+    public boolean processCommand(String command) {
         try {
             String[] commandArray = command.split("\\s+");
             if (commandArray.length == 0) {
@@ -236,11 +263,31 @@ public class CLI {
             }
 
             String operation = commandArray[0];
-            if (handlers.containsKey(operation)) {
-                handlers.get(operation).run(Arrays.copyOfRange(commandArray, 1, commandArray.length));
-            } else {
+            if (!handlers.containsKey(operation)) {
                 System.out.println("Not a valid command");
+                return true;
             }
+
+            try {
+                handleAuthorization(operation);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+
+            if (operation.equalsIgnoreCase("create")
+                    || operation.equalsIgnoreCase("list")
+                    || operation.equalsIgnoreCase("join")
+                    || operation.equalsIgnoreCase("observe")) {
+                games = server.getGames();
+            }
+
+            handlers.get(operation).run(Arrays.copyOfRange(commandArray, 1, commandArray.length));
+
+            if (operation.equalsIgnoreCase("join")
+                    || operation.equalsIgnoreCase("observe")) {
+
+            }
+
         } catch (Exception e) {
             System.out.println("An error occurred and the operation was unsuccessful.");
         }

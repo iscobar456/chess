@@ -7,23 +7,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.HashMap;
 import java.util.Map;
 
 public class Client {
     private final HttpClient client = HttpClient.newHttpClient();
     private String authToken;
 
-    public static class ResponseException extends Exception {
-        private String message;
-        public ResponseException() {}
-        public ResponseException(String message) {
-            this.message = message;
-        }
-        public String getMessage() {
-            return message;
-        }
-    };
+    public static class ResponseException extends Exception {};
 
     public static class BadRequestResponse extends ResponseException {};
     public static class UnauthorizedResponse extends ResponseException {};

@@ -72,6 +72,24 @@ public class ChessPiece {
         return ChessMoveCalculator.getPieceMoves(board, myPosition, type, color);
     }
 
+    public static PieceType stringToType(String type) throws Exception {
+        if (type.equalsIgnoreCase("king")) {
+            return PieceType.KING;
+        } else if (type.equalsIgnoreCase("queen")) {
+            return PieceType.QUEEN;
+        } else if (type.equalsIgnoreCase("bishop")) {
+            return PieceType.BISHOP;
+        } else if (type.equalsIgnoreCase("knight")) {
+            return PieceType.KNIGHT;
+        } else if (type.equalsIgnoreCase("rook")) {
+            return PieceType.ROOK;
+        } else if (type.equalsIgnoreCase("pawn")) {
+            return PieceType.PAWN;
+        } else {
+            throw new Exception("Invalid piece type");
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
