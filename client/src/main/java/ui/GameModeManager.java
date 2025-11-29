@@ -39,4 +39,8 @@ public class GameModeManager {
         System.out.flush();
         System.out.print(MOVE_TO_SAVED_CURSOR);
     }
+
+    public void exitGameMode() {
+        System.out.print(ERASE_SCREEN);
+    }
 }

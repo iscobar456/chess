@@ -1,4 +1,4 @@
-package serverfacade;
+package data;
 
 import chess.ChessGame;
 

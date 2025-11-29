@@ -3,7 +3,9 @@ package serverfacade;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import ui.UpdateReceiver;
+import data.GameData;
+import websocket.messages.ServerMessage;
+import websocket.messages.ServerMessage.ServerMessageType;
 
 import java.lang.reflect.Type;
 import java.net.http.HttpResponse;
@@ -11,17 +13,19 @@ import java.util.Map;
 import java.util.ArrayList;
 
 
-public class ServerFacade {
+public class ServerFacade implements MessageHandler {
     private final String baseUrl;
     private final Gson gson = new Gson();
     private final Client client;
     private boolean isAuthorized;
     private WebSocketClient webSocketClient;
+    private UpdateListener updateListener;
 
-    public ServerFacade(String protocol, String host, int port, UpdateReceiver listener) {
+    public ServerFacade(String protocol, String host, int port, UpdateListener listener) throws Exception {
         baseUrl = String.format("%s://%s:%d", protocol, host, port);
         client = new Client();
-        webSocketClient = new WebSocketClient(this);
+        webSocketClient = new WebSocketClient(this, String.format("ws://%s:%d", host, port));
+        updateListener = listener;
     }
 
     public boolean getIsAuthorized() {
@@ -96,5 +100,12 @@ public class ServerFacade {
         String urlString = String.format("%s/db", baseUrl);
         client.sendRequest(urlString, "DELETE", null);
         client.setAuthToken(null);
+    }
+
+    @Override
+    public void onMessage(ServerMessage message) {
+        if (ServerMessageType.NOTIFICATION == message.getServerMessageType()) {
+            updateListener.onNotification(message.getMessage());
+        }
     }
 }

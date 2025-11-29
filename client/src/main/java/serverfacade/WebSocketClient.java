@@ -4,22 +4,28 @@ import com.google.gson.Gson;
 import jakarta.websocket.ClientEndpoint;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.Session;
-import ui.UpdateReceiver;
+import org.glassfish.tyrus.client.ClientManager;
+import websocket.messages.ServerMessage;
+
+import java.net.URI;
 
 public class WebSocketClient {
-    UpdateReceiver listener;
+    MessageHandler handler;
     Gson gson;
+    ClientManager client;
 
-    public WebSocketClient(UpdateReceiver listener) {
+    public WebSocketClient(MessageHandler handler, String serverURI) throws Exception {
         gson = new Gson();
-        this.listener = listener;
+        this.handler = handler;
+        client = ClientManager.createClient();
+        client.connectToServer(WebSocketEndpoint.class, URI.create(serverURI + "/ws"));
     }
 
     @ClientEndpoint
     class WebSocketEndpoint {
         @OnMessage
         public void onMessage(Session session, String message) {
-
+            handler.onMessage(gson.fromJson(message, ServerMessage.class));
         }
     }
 }

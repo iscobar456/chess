@@ -1,14 +1,13 @@
 package ui;
 
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
+import data.GameData;
+import data.Update;
 import serverfacade.*;
 
 import java.util.*;
 
-public class CLI implements UpdateReceiver {
+public class CLI implements UpdateListener {
     Scanner scanner;
     ServerFacade server;
     boolean isAuthorized = false;
@@ -20,7 +19,7 @@ public class CLI implements UpdateReceiver {
     GameModeManager gameModeView;
     String user;
 
-    public CLI() {
+    public CLI() throws Exception {
         scanner = new Scanner(System.in);
         server = new ServerFacade("http", "localhost", 8080, this);
         games = new ArrayList<>();
@@ -211,15 +210,17 @@ public class CLI implements UpdateReceiver {
         }
 
         try {
-            observedGame.game().makeMove(new ChessMove(
+            ChessMove move = new ChessMove(
                     new ChessPosition(args[0]),
                     new ChessPosition(args[1]),
                     args.length > 2
                             ? ChessPiece.stringToType(args[3])
                             : null
-            ));
+            );
+            observedGame.game().makeMove(move);
+            server.makeMove(move);
         } catch (Exception e) {
-            gameModeView.notify("Must provide a starting, ending position, " +
+            gameModeView.notify("Invalid move. Must provide a valid starting, ending position, " +
                     "and a promotion piece if applicable. (e.g., B3 A4 QUEEN)");
         }
     }
@@ -229,8 +230,13 @@ public class CLI implements UpdateReceiver {
     }
 
     @Override
-    public void onNotification(Update update) {
-        int updateGameId = update.gameData().gameID();
+    public void onNotification(String notification) {
+        gameModeView.notify(notification);
+    }
+
+    @Override
+    public void onLoadGame(GameData gameData) {
+        int updateGameId = gameData.gameID();
         int gameNumber = getGameNumber(updateGameId);
         if (gameNumber == -1) {
             return;
@@ -240,12 +246,16 @@ public class CLI implements UpdateReceiver {
 
         // If the updated game is the observed game, re-render.
         if (localGameData.game().equals(observedGame)) {
-            games.set(gameNumber, update.gameData());
-            observedGame = update.gameData();
+            games.set(gameNumber, gameData);
+            observedGame = gameData;
             gameModeView.renderGame(observedGame.game());
         }
+    }
 
-
+    @Override
+    public void onDisconnect() {
+        inGameMode = false;
+        gameModeView.exitGameMode();
     }
 
     public interface CLIRunnable {
@@ -281,38 +291,38 @@ public class CLI implements UpdateReceiver {
     }
 
     public boolean processCommand(String command) {
+
+        String[] commandArray = command.split("\\s+");
+        if (commandArray.length == 0) {
+            return true;
+        }
+        String operation = commandArray[0].toLowerCase(Locale.ROOT);
+        if (!handlers.containsKey(operation)) {
+            System.out.println("Not a valid command");
+            return true;
+        }
+
         try {
-            String[] commandArray = command.split("\\s+");
-            if (commandArray.length == 0) {
-                return true;
-            }
+            handleAuthorization(operation);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return true;
+        }
 
-            String operation = commandArray[0];
-            if (!handlers.containsKey(operation)) {
-                System.out.println("Not a valid command");
-                return true;
-            }
-
-            try {
-                handleAuthorization(operation);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-
-            if (operation.equalsIgnoreCase("create")
-                    || operation.equalsIgnoreCase("list")
-                    || operation.equalsIgnoreCase("join")
-                    || operation.equalsIgnoreCase("observe")) {
+        try {
+            if (operation.equals("create")
+                    || operation.equals("list")
+                    || operation.equals("join")
+                    || operation.equals("observe")) {
                 games = server.getGames();
             }
-
             handlers.get(operation).run(Arrays.copyOfRange(commandArray, 1, commandArray.length));
-
-            if (inGameMode) {
-                gameModeView.renderGame(observedGame.game());
-            }
         } catch (Exception e) {
             System.out.println("An error occurred and the operation was unsuccessful.");
+        }
+
+        if (inGameMode) {
+            gameModeView.renderGame(observedGame.game());
         }
 
         return !command.equals("quit");
