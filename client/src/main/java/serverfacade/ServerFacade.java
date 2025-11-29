@@ -3,8 +3,8 @@ package serverfacade;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import ui.UpdateReceiver;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.net.http.HttpResponse;
 import java.util.Map;
@@ -16,10 +16,12 @@ public class ServerFacade {
     private final Gson gson = new Gson();
     private final Client client;
     private boolean isAuthorized;
+    private WebSocketClient webSocketClient;
 
-    public ServerFacade(String protocol, String host, int port) {
+    public ServerFacade(String protocol, String host, int port, UpdateReceiver listener) {
         baseUrl = String.format("%s://%s:%d", protocol, host, port);
         client = new Client();
+        webSocketClient = new WebSocketClient(this);
     }
 
     public boolean getIsAuthorized() {

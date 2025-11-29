@@ -9,9 +9,7 @@ public class BoardView {
     Tile[][] board;
     ChessGame.TeamColor perspective;
 
-    public BoardView(ChessGame game, ChessGame.TeamColor perspective) {
-        this.game = game;
-        this.perspective = perspective;
+    public BoardView() {
         board = new Tile[10][10];
     }
 
@@ -83,7 +81,9 @@ public class BoardView {
         board = newBoard;
     }
 
-    public String render() {
+    public String render(ChessGame game, ChessGame.TeamColor perspective) {
+        this.game = game;
+        this.perspective = perspective;
         constructEmptyBoard();
         placePieces();
 

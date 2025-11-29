@@ -4,24 +4,25 @@ import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
-import serverfacade.Client;
-import serverfacade.GameData;
-import serverfacade.ServerFacade;
+import serverfacade.*;
 
 import java.util.*;
 
-public class CLI {
+public class CLI implements UpdateReceiver {
     Scanner scanner;
     ServerFacade server;
     boolean isAuthorized = false;
     HashMap<String, CLIRunnable> handlers;
     ArrayList<GameData> games;
-    ChessGame observedGame;
+    GameData observedGame;
+    ChessGame.TeamColor perspective;
     boolean inGameMode;
+    GameModeManager gameModeView;
+    String user;
 
     public CLI() {
         scanner = new Scanner(System.in);
-        server = new ServerFacade("http", "localhost", 8080);
+        server = new ServerFacade("http", "localhost", 8080, this);
         games = new ArrayList<>();
         handlers = constructHandlerMap();
         inGameMode = false;
@@ -37,13 +38,23 @@ public class CLI {
     }
 
     public void help() {
-        if (isAuthorized) {
+        if (isAuthorized && !inGameMode) {
             System.out.print("""
                     |-----------COMMAND------------:-----------INFO-----------|
                     | create <game_name>           : Creates a new game       |
                     | list                         : List all games           |
                     | join <game_id> [WHITE|BLACK] : Play in a specified game |
                     | observe <game_id>            : Observe a specified game |
+                    | logout                       : Log out of your account  |
+                    | quit                         : Quit the game            |
+                    | help                         : Display help message     |""");
+        } else if (isAuthorized && inGameMode) {
+            System.out.print("""
+                    |-----------COMMAND------------:-----------INFO-----------|
+                    | create <game_name>           : Creates a new game       |
+                    | list                         : List all games           |
+                    | move <start> <end> <promote> : Move a piece             |
+                    | resign                       : Forfeit the game         |
                     | logout                       : Log out of your account  |
                     | quit                         : Quit the game            |
                     | help                         : Display help message     |""");
@@ -54,7 +65,6 @@ public class CLI {
                     | login <username> <password>            : Sign into your account     |
                     | quit                                   : Quit the game              |
                     | help                                   : Display help message       |""");
-
         }
 
     }
@@ -78,6 +88,7 @@ public class CLI {
             }
             server.login(username, password);
             isAuthorized = true;
+            user = username;
             System.out.printf("Logged in as %s%n", username);
         } catch (Client.BadRequestResponse e) {
             System.out.println("Username and password are required fields.");
@@ -98,6 +109,7 @@ public class CLI {
 
         try {
             server.register(username, password, email);
+            user = username;
             this.isAuthorized = true;
             System.out.printf("Logged in as %s%n", username);
         } catch (Client.BadRequestResponse e) {
@@ -110,6 +122,7 @@ public class CLI {
     public void logout() throws Exception {
         server.logout();
         isAuthorized = false;
+        user = null;
         System.out.println("Logged out");
     }
 
@@ -165,9 +178,8 @@ public class CLI {
             server.joinGame(gameID, color);
             setObservedGame(Integer.parseInt(args[0]) - 1);
             inGameMode = true;
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid game ID");
-        } catch (IndexOutOfBoundsException e) {
+            gameModeView = new GameModeManager(color, false);
+        } catch (NumberFormatException | IndexOutOfBoundsException e) {
             System.out.println("Invalid game ID");
         } catch (Client.BadRequestResponse e) {
             System.out.println("Invalid game ID or color");
@@ -184,44 +196,56 @@ public class CLI {
 
         try {
             setObservedGame(Integer.parseInt(args[0]) - 1);
-            renderGame();
-        } catch (IndexOutOfBoundsException e) {
-            System.out.println("Invalid game ID");
-        } catch (NumberFormatException e) {
+            inGameMode = true;
+            gameModeView = new GameModeManager(ChessGame.TeamColor.WHITE, true);
+        } catch (IndexOutOfBoundsException | NumberFormatException e) {
             System.out.println("Invalid game ID");
         }
     }
-
 
 
     private void makeMove(String[] args) {
         if (args.length < 2) {
-            System.out.println("Must provide a starting and ending position. (e.g., B2 C2)");
+            gameModeView.notify("Must provide a starting and ending position. (e.g., B2 C2)");
             return;
         }
 
         try {
-            ChessPosition start = new ChessPosition(args[0]);
-            ChessPosition end = new ChessPosition(args[1]);
-            ChessPiece.PieceType type = null;
-            if (args.length > 2) {
-                type = ChessPiece.stringToType(args[3]);
-            }
-            ChessMove move = new ChessMove(start, end, type);
-            observedGame.makeMove(move);
+            observedGame.game().makeMove(new ChessMove(
+                    new ChessPosition(args[0]),
+                    new ChessPosition(args[1]),
+                    args.length > 2
+                            ? ChessPiece.stringToType(args[3])
+                            : null
+            ));
         } catch (Exception e) {
-            System.out.println("Must provide a starting, ending position, " +
+            gameModeView.notify("Must provide a starting, ending position, " +
                     "and a promotion piece if applicable. (e.g., B3 A4 QUEEN)");
         }
     }
 
-    private void renderGame() {
-        BoardView view = new BoardView(observedGame, ChessGame.TeamColor.WHITE);
-        System.out.print(view.render());
+    private void setObservedGame(int id) throws IndexOutOfBoundsException {
+        observedGame = games.get(id);
     }
 
-    private void setObservedGame(int id) throws IndexOutOfBoundsException {
-        observedGame = games.get(id).game();
+    @Override
+    public void onNotification(Update update) {
+        int updateGameId = update.gameData().gameID();
+        int gameNumber = getGameNumber(updateGameId);
+        if (gameNumber == -1) {
+            return;
+        }
+
+        GameData localGameData = games.get(gameNumber);
+
+        // If the updated game is the observed game, re-render.
+        if (localGameData.game().equals(observedGame)) {
+            games.set(gameNumber, update.gameData());
+            observedGame = update.gameData();
+            gameModeView.renderGame(observedGame.game());
+        }
+
+
     }
 
     public interface CLIRunnable {
@@ -252,6 +276,7 @@ public class CLI {
         handlerMap.put("list", args -> list());
         handlerMap.put("join", this::join);
         handlerMap.put("observe", this::observe);
+        handlerMap.put("move", this::makeMove);
         return handlerMap;
     }
 
@@ -283,11 +308,9 @@ public class CLI {
 
             handlers.get(operation).run(Arrays.copyOfRange(commandArray, 1, commandArray.length));
 
-            if (operation.equalsIgnoreCase("join")
-                    || operation.equalsIgnoreCase("observe")) {
-
+            if (inGameMode) {
+                gameModeView.renderGame(observedGame.game());
             }
-
         } catch (Exception e) {
             System.out.println("An error occurred and the operation was unsuccessful.");
         }
