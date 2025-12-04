@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import jakarta.websocket.ClientEndpoint;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.Session;
+import org.glassfish.grizzly.http.server.SessionManager;
 import org.glassfish.tyrus.client.ClientManager;
 import websocket.messages.ServerMessage;
 
@@ -13,12 +14,13 @@ public class WebSocketClient {
     MessageHandler handler;
     Gson gson;
     ClientManager client;
+    Session session;
 
     public WebSocketClient(MessageHandler handler, String serverURI) throws Exception {
         gson = new Gson();
         this.handler = handler;
         client = ClientManager.createClient();
-        client.connectToServer(WebSocketEndpoint.class, URI.create(serverURI + "/ws"));
+        session = client.connectToServer(WebSocketEndpoint.class, URI.create(serverURI + "/ws"));
     }
 
     @ClientEndpoint
@@ -27,5 +29,9 @@ public class WebSocketClient {
         public void onMessage(Session session, String message) {
             handler.onMessage(gson.fromJson(message, ServerMessage.class));
         }
+    }
+
+    public void sendMessage(String message) throws Exception {
+        session.getBasicRemote().sendText(message);
     }
 }

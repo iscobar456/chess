@@ -218,7 +218,7 @@ public class CLI implements UpdateListener {
                             : null
             );
             observedGame.game().makeMove(move);
-            server.makeMove(move);
+            server.makeMove(move, observedGame.gameID());
         } catch (Exception e) {
             gameModeView.notify("Invalid move. Must provide a valid starting, ending position, " +
                     "and a promotion piece if applicable. (e.g., B3 A4 QUEEN)");
@@ -263,12 +263,12 @@ public class CLI implements UpdateListener {
     }
 
     public void handleAuthorization(String operation) throws Exception {
-        if (operation.equalsIgnoreCase("login")
-                || operation.equalsIgnoreCase("register")) {
+        if (operation.equals("login")
+                || operation.equals("register")) {
             if (isAuthorized) {
                 throw new Exception("Already logged in");
             }
-        } else {
+        } else if(!operation.equals("help")){
             if (!isAuthorized) {
                 throw new Exception("Not logged in");
             }

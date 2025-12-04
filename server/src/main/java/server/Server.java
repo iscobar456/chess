@@ -10,6 +10,8 @@ import io.javalin.*;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.HttpResponseException;
 
+import passoff.websocket.WebsocketTestingEnvironment;
+import server.websocket.WebSocketHandler;
 import service.Service;
 
 import java.util.ArrayList;
@@ -56,6 +58,12 @@ public class Server {
         });
         javalin.delete("/db", ctx -> {
             service.clear();
+        });
+        WebSocketHandler wsHandler = new WebSocketHandler(service);
+        javalin.ws("/ws", ws -> {
+            ws.onConnect(wsHandler);
+            ws.onMessage(wsHandler);
+            ws.onClose(wsHandler);
         });
 
         javalin.exception(HttpResponseException.class, (e,ctx) -> {

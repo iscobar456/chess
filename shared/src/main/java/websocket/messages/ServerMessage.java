@@ -11,16 +11,25 @@ import java.util.Objects;
 public class ServerMessage {
     ServerMessageType serverMessageType;
     String message;
+    String authToken;
 
     public enum ServerMessageType {
         LOAD_GAME,
         ERROR,
-        NOTIFICATION
+        NOTIFICATION,
+        DISCONNECT,
+        USER_COMMAND
     }
 
     public ServerMessage(ServerMessageType type, String message) {
         this.serverMessageType = type;
         this.message = message;
+    }
+
+    public ServerMessage(ServerMessageType type, String message, String authToken) {
+        this.serverMessageType = type;
+        this.message = message;
+        this.authToken = authToken;
     }
 
     public ServerMessageType getServerMessageType() {

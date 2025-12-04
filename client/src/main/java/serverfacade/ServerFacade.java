@@ -1,9 +1,14 @@
 package serverfacade;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import data.GameData;
+import websocket.commands.UserGameCommand;
+
+import static websocket.commands.UserGameCommand.CommandType.*;
+
 import websocket.messages.ServerMessage;
 import websocket.messages.ServerMessage.ServerMessageType;
 
@@ -83,23 +88,29 @@ public class ServerFacade implements MessageHandler {
                 urlString, "GET", null);
         Map responseBody = Client.receiveResponse(response);
 
-        Type gamesType = new TypeToken<ArrayList<GameData>>() {}.getType();
+        Type gamesType = new TypeToken<ArrayList<GameData>>() {
+        }.getType();
         return gson.fromJson(responseBody.get("games").toString(), gamesType);
     }
 
     public void joinGame(int gameID, ChessGame.TeamColor color) throws Exception {
         String urlString = String.format("%s/game", baseUrl);
         client.sendRequest(
-            urlString,
-            "PUT",
-            gson.toJson(
-                Map.of("gameID", gameID, "playerColor", color.toString())));
+                urlString,
+                "PUT",
+                gson.toJson(
+                        Map.of("gameID", gameID, "playerColor", color.toString())));
     }
 
     public void clear() throws Exception {
         String urlString = String.format("%s/db", baseUrl);
         client.sendRequest(urlString, "DELETE", null);
         client.setAuthToken(null);
+    }
+
+    public void makeMove(ChessMove move, int gameId) throws Exception {
+        UserGameCommand command = new UserGameCommand(MAKE_MOVE, client.getAuthToken(), gameId);
+        webSocketClient.sendMessage(gson.toJson(command));
     }
 
     @Override
