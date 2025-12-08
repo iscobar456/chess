@@ -10,7 +10,6 @@ import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.UUID;
 

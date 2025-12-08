@@ -119,10 +119,10 @@ public class SQLDataAccess implements DataAccess {
                 ArrayList<GameData> games = new ArrayList<>();
                 while (result.next()) {
                     games.add(new GameData(
-                            result.getString(2),
-                            result.getInt(1),
-                            result.getString(3),
                             result.getString(4),
+                            result.getInt(1),
+                            result.getString(2),
+                            result.getString(3),
                             (ChessGame) gson.fromJson(result.getString(5), ChessGame.class)));
                 }
                 return games;
@@ -142,10 +142,10 @@ public class SQLDataAccess implements DataAccess {
                     return null;
                 }
                 return new GameData(
-                        result.getString(2),
-                        result.getInt(1),
-                        result.getString(3),
                         result.getString(4),
+                        result.getInt(1),
+                        result.getString(2),
+                        result.getString(3),
                         (ChessGame) gson.fromJson(result.getString(5), ChessGame.class));
             }
         } catch (Exception e) {
