@@ -2,6 +2,7 @@ package server.websocket;
 
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
+import data.GameData;
 import io.javalin.http.UnauthorizedResponse;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsCloseHandler;
@@ -9,6 +10,7 @@ import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
+import org.eclipse.jetty.websocket.api.Session;
 import service.Service;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
@@ -25,10 +27,45 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private final ConnectionManager connections = new ConnectionManager();
     private final Gson gson = new Gson();
     private final Service service;
-    private HashMap<Integer, ArrayList<String>> observers = new HashMap<>();
+    private HashMap<Integer, ConnectionManager> observers = new HashMap<>();
 
     public WebSocketHandler(Service service) {
         this.service = service;
+    }
+
+    private void addToObservers(Session session, int gameId) {
+        if (!observers.containsKey(gameId)) {
+            observers.put(gameId, new ConnectionManager());
+        }
+        observers.get(gameId).add(session);
+    }
+
+    private String getStatusString(String username, GameData gameData) {
+        String statusString;
+        if (username.equals(gameData.whiteUsername())) {
+            statusString = "white player";
+        } else if (username.equals(gameData.blackUsername())) {
+            statusString = "black player";
+        } else {
+            statusString = "an observer";
+        }
+        return statusString;
+    }
+
+    private void handleGameConnection(WsMessageContext ctx, UserGameCommand command) throws IOException {
+        var gameId = command.getGameID();
+        addToObservers(ctx.session, gameId);
+
+        var gameData = service.getGame(gameId);
+        var loadGameMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, null, gameData);
+        ctx.session.getRemote().sendString(gson.toJson(loadGameMessage));
+
+        var username = service.validateToken(command.getAuthToken());
+        var connectedNotification = new ServerMessage(
+                ServerMessage.ServerMessageType.NOTIFICATION,
+                String.format("%s has joined as %s.", username, getStatusString(username, gameData)),
+                null);
+        observers.get(gameId).broadcast(ctx.session, gson.toJson(connectedNotification));
     }
 
     @Override
@@ -44,15 +81,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         switch (command.getCommandType()) {
             case CONNECT -> {
                 try {
-                    var gameData = service.getGame(command.getGameID());
-                    var username = service.validateToken(command.getAuthToken());
-                    if (!observers.containsKey(command.getGameID())) {
-                        observers.put(command.getGameID(), new ArrayList<>(Collections.singletonList(username)));
-                    } else {
-                        observers.get(command.getGameID()).add(username);
-                    }
-                    var message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, "", gameData);
-                    ctx.session.getRemote().sendString(gson.toJson(message));
+                    handleGameConnection(ctx, command);
                 } catch (UnauthorizedResponse response) {
                     var message = new ServerMessage(ServerMessage.ServerMessageType.ERROR, "Invalid authtoken");
                     ctx.session.getRemote().sendString(gson.toJson(message));
