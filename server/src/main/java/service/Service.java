@@ -90,7 +90,7 @@ public class Service {
             throw new BadRequestResponse("must provide game name");
         }
         int newID = 1 + dataAccess.getGames().stream().mapToInt(GameData::gameID).max().orElse(0);
-        GameData game = new GameData(newID, null, null, gameName, new ChessGame());
+        GameData game = new GameData(gameName, newID, null, null, new ChessGame());
         dataAccess.saveGame(game);
         return newID;
     }
@@ -104,13 +104,13 @@ public class Service {
             if (game.blackUsername() != null) {
                 throw new ForbiddenResponse("already taken");
             }
-            GameData newGame = new GameData(gameID, game.whiteUsername(), username, game.gameName(), game.game());
+            GameData newGame = new GameData(game.gameName(), gameID, game.whiteUsername(), username, game.game());
             dataAccess.saveGame(newGame);
         } else if (color == ChessGame.TeamColor.WHITE) {
             if (game.whiteUsername() != null) {
                 throw new ForbiddenResponse("already taken");
             }
-            GameData newGame = new GameData(gameID, username, game.blackUsername(), game.gameName(), game.game());
+            GameData newGame = new GameData(game.gameName(), gameID, username, game.blackUsername(), game.game());
             dataAccess.saveGame(newGame);
         } else {
             throw new BadRequestResponse();
@@ -122,10 +122,10 @@ public class Service {
         ChessGame game = gameData.game();
         game.makeMove(move);
         dataAccess.saveGame(new GameData(
+                gameData.gameName(),
                 gameData.gameID(),
                 gameData.whiteUsername(),
                 gameData.blackUsername(),
-                gameData.gameName(),
                 game));
     }
 
