@@ -1,7 +1,10 @@
 package service;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 import dataaccess.*;
+import data.GameData;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
@@ -112,6 +115,18 @@ public class Service {
         } else {
             throw new BadRequestResponse();
         }
+    }
+
+    public void makeMove(int gameID, ChessMove move) throws InvalidMoveException {
+        GameData gameData = dataAccess.getGame(gameID);
+        ChessGame game = gameData.game();
+        game.makeMove(move);
+        dataAccess.saveGame(new GameData(
+                gameData.gameID(),
+                gameData.whiteUsername(),
+                gameData.blackUsername(),
+                gameData.gameName(),
+                game));
     }
 
     public void clear() {

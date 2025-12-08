@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import chess.ChessGame;
+import data.GameData;
 
 public class DataAccessTests {
     private final SQLDataAccess dataAccess = new SQLDataAccess();
@@ -27,7 +28,7 @@ public class DataAccessTests {
         int gameID = 1;
         String gameName = "game1";
         ChessGame chessGame = new ChessGame();
-        dataAccess.saveGame(new GameData(gameID, username1, username2, gameName, chessGame));
+        dataAccess.saveGame(new GameData(gameName, gameID, username1, username2, chessGame));
 
         // Test getGame()
         GameData game = dataAccess.getGame(gameID);
@@ -42,7 +43,7 @@ public class DataAccessTests {
         int gameID = 1;
         String gameName = "game1";
         ChessGame chessGame = new ChessGame();
-        dataAccess.saveGame(new GameData(gameID, null, null, gameName, chessGame));
+        dataAccess.saveGame(new GameData(gameName, gameID, null, null, chessGame));
 
         // Test getGame()
         assertNull(dataAccess.getGame(2));
@@ -61,11 +62,11 @@ public class DataAccessTests {
         dataAccess.saveUser(new UserData(username2, password, email));
 
         // Create games
-        dataAccess.saveGame(new GameData(1, username1, username2, "game1", new ChessGame()));
-        dataAccess.saveGame(new GameData(2, username1, username2, "game2", new ChessGame()));
-        dataAccess.saveGame(new GameData(3, username1, username2, "game3", new ChessGame()));
-        dataAccess.saveGame(new GameData(4, username1, username2, "game4", new ChessGame()));
-        dataAccess.saveGame(new GameData(5, username1, username2, "game5", new ChessGame()));
+        dataAccess.saveGame(new GameData("game1", 1, username1, username2, new ChessGame()));
+        dataAccess.saveGame(new GameData("game2", 2, username1, username2, new ChessGame()));
+        dataAccess.saveGame(new GameData("game3", 3, username1, username2, new ChessGame()));
+        dataAccess.saveGame(new GameData("game4", 4, username1, username2, new ChessGame()));
+        dataAccess.saveGame(new GameData("game5", 5, username1, username2, new ChessGame()));
 
         // Test getGames()
         ArrayList<GameData> games = dataAccess.getGames();
@@ -100,7 +101,7 @@ public class DataAccessTests {
         int gameID = 1;
         String gameName = "game1";
         ChessGame chessGame = new ChessGame();
-        dataAccess.saveGame(new GameData(gameID, username1, username2, gameName, chessGame));
+        dataAccess.saveGame(new GameData(gameName, gameID, username1, username2, chessGame));
 
         // Test saveGame()
         GameData game = dataAccess.getGame(gameID);
@@ -115,10 +116,11 @@ public class DataAccessTests {
         dataAccess.clear();
 
         // Save game
-        assertThrows(InternalServerErrorResponse.class, () -> dataAccess.saveGame(new GameData(1,
+        assertThrows(InternalServerErrorResponse.class, () -> dataAccess.saveGame(new GameData(
+                "name",
+                1,
                 "username",
                 null,
-                "name",
                 new ChessGame())));
     }
 
@@ -285,8 +287,8 @@ public class DataAccessTests {
         dataAccess.saveUser(new UserData(username2, password, email));
 
         // Save games
-        dataAccess.saveGame(new GameData(1, username1, username2, "game1", new ChessGame()));
-        dataAccess.saveGame(new GameData(2, username1, username2, "game2", new ChessGame()));
+        dataAccess.saveGame(new GameData("game1", 1, username1, username2, new ChessGame()));
+        dataAccess.saveGame(new GameData("game2", 2, username1, username2, new ChessGame()));
 
         // Save auths
         dataAccess.saveAuth(new AuthData("uuid-uuid-uuid-uu1d", username1));

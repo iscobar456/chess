@@ -8,6 +8,7 @@ import io.javalin.http.UnauthorizedResponse;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
+import data.GameData;
 
 public class ServiceTests {
     private final SQLDataAccess dataAccess = new SQLDataAccess();
@@ -200,7 +201,7 @@ public class ServiceTests {
         AuthData auth = new AuthData(authToken, username1);
         dataAccess.saveAuth(auth);
 
-        GameData game = new GameData(4, username1, username2, "game1", new ChessGame());
+        GameData game = new GameData("game1", 4, username1, username2, new ChessGame());
         dataAccess.saveGame(game);
 
         assertNotNull(dataAccess.getUser(username1));

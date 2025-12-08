@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLSyntaxErrorException;
 import java.util.ArrayList;
+import data.GameData;
 
 public class SQLDataAccess implements DataAccess {
     private final Gson gson = new Gson();
@@ -118,8 +119,8 @@ public class SQLDataAccess implements DataAccess {
                 ArrayList<GameData> games = new ArrayList<>();
                 while (result.next()) {
                     games.add(new GameData(
-                            result.getInt(1),
                             result.getString(2),
+                            result.getInt(1),
                             result.getString(3),
                             result.getString(4),
                             (ChessGame) gson.fromJson(result.getString(5), ChessGame.class)));
@@ -141,8 +142,8 @@ public class SQLDataAccess implements DataAccess {
                     return null;
                 }
                 return new GameData(
-                        result.getInt(1),
                         result.getString(2),
+                        result.getInt(1),
                         result.getString(3),
                         result.getString(4),
                         (ChessGame) gson.fromJson(result.getString(5), ChessGame.class));

@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import dataaccess.*;
+import data.GameData;
 import io.javalin.*;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.HttpResponseException;

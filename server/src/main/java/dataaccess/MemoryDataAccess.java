@@ -2,7 +2,7 @@ package dataaccess;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import data.GameData;
 
 public class MemoryDataAccess implements DataAccess {
     public HashMap<String, UserData> users;

@@ -2,6 +2,7 @@ package dataaccess;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import data.GameData;
 
 public interface DataAccess {
     UserData getUser(String username);
