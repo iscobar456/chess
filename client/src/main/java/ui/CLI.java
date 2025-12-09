@@ -2,7 +2,6 @@ package ui;
 
 import chess.*;
 import data.GameData;
-import data.Update;
 import serverfacade.*;
 
 import java.util.*;

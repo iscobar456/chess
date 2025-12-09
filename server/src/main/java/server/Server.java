@@ -11,7 +11,6 @@ import io.javalin.*;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.HttpResponseException;
 
-import passoff.websocket.WebsocketTestingEnvironment;
 import server.websocket.WebSocketHandler;
 import service.Service;
 
