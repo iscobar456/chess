@@ -23,8 +23,8 @@ public class ChessPiece {
     static final String BLACK_ROOK = "♜";
     static final String BLACK_PAWN = "♟";
 
-    private ChessGame.TeamColor color;
-    private PieceType type;
+    private final ChessGame.TeamColor color;
+    private final PieceType type;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         color = pieceColor;

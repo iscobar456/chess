@@ -17,15 +17,13 @@ import websocket.messages.ServerMessage;
 import static websocket.messages.ServerMessage.ServerMessageType.*;
 import java.io.IOException;
 import java.util.HashMap;
-import java.lang.Thread;
 
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
-    private final ConnectionManager connections = new ConnectionManager();
     private final Gson gson = new Gson();
     private final Service service;
-    private HashMap<Integer, ConnectionManager> observers = new HashMap<>();
+    private final HashMap<Integer, ConnectionManager> observers = new HashMap<>();
 
     public WebSocketHandler(Service service) {
         this.service = service;

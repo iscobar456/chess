@@ -2,7 +2,6 @@ package serverfacade;
 
 import chess.ChessGame;
 import chess.ChessMove;
-import chess.ChessPosition;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import data.GameData;
@@ -24,8 +23,8 @@ public class ServerFacade implements ServerMessageHandler {
     private final Gson gson = new Gson();
     private final Client client;
     private boolean isAuthorized;
-    private WebSocketClient webSocketClient;
-    private UpdateListener updateListener;
+    private final WebSocketClient webSocketClient;
+    private final UpdateListener updateListener;
 
     public ServerFacade(String protocol, String host, int port, UpdateListener listener) throws Exception {
         baseUrl = String.format("%s://%s:%d", protocol, host, port);
