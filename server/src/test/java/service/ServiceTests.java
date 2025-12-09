@@ -221,4 +221,5 @@ public class ServiceTests {
         assertThrows(NullPointerException.class, service::clear);
         service.dataAccess = new MemoryDataAccess();
     }
+
 }

@@ -42,6 +42,10 @@ public class ServerMessage {
         return message;
     }
 
+    public GameData getGame() {
+        return game;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

@@ -47,15 +47,15 @@ public class CLI implements UpdateListener {
                     | logout                       : Log out of your account  |
                     | quit                         : Quit the game            |
                     | help                         : Display help message     |""");
-        } else if (isAuthorized && inGameMode) {
+        } else if (isAuthorized) {
+            gameModeView.clearScreen
             System.out.print("""
                     |-----------COMMAND------------:-----------INFO-----------|
-                    | create <game_name>           : Creates a new game       |
-                    | list                         : List all games           |
+                    | redraw                       : Redraw the board         |
+                    | leave                        : Leave the game           |
                     | move <start> <end> <promote> : Move a piece             |
                     | resign                       : Forfeit the game         |
-                    | logout                       : Log out of your account  |
-                    | quit                         : Quit the game            |
+                    | highlight                    : Highlight legal moves    |
                     | help                         : Display help message     |""");
         } else {
             System.out.print("""
@@ -135,6 +135,7 @@ public class CLI implements UpdateListener {
 
         try {
             int gameID = server.createGame(gameName);
+            games = server.getGames();
             System.out.printf("Game created with id %s%n", getGameNumber(gameID));
         } catch (Client.BadRequestResponse e) {
             System.out.println("Invalid game name");
@@ -158,7 +159,6 @@ public class CLI implements UpdateListener {
             return;
         }
 
-
         try {
             int gameNumber = Integer.parseInt(args[0]);
             int gameID = games.get(gameNumber - 1).gameID();
@@ -168,16 +168,16 @@ public class CLI implements UpdateListener {
             if (colorString.equalsIgnoreCase("white")) {
                 color = ChessGame.TeamColor.WHITE;
             } else if (colorString.equalsIgnoreCase("black")) {
-                color = ChessGame.TeamColor.WHITE;
+                color = ChessGame.TeamColor.BLACK;
             } else {
                 System.out.println("Color must be white or black");
                 return;
             }
 
-            server.joinGame(gameID, color);
             setObservedGame(Integer.parseInt(args[0]) - 1);
             inGameMode = true;
             gameModeView = new GameModeManager(color, false);
+            server.joinGame(gameID, color);
         } catch (NumberFormatException | IndexOutOfBoundsException e) {
             System.out.println("Invalid game ID");
         } catch (Client.BadRequestResponse e) {
@@ -225,6 +225,15 @@ public class CLI implements UpdateListener {
         }
     }
 
+    private void leaveGame() throws Exception {
+        server.leaveGame(observedGame.gameID());
+        inGameMode = false;
+    }
+
+    private void redraw() {
+        gameModeView.renderGame(observedGame.game());
+    }
+
     private void setObservedGame(int id) throws IndexOutOfBoundsException {
         observedGame = games.get(id);
     }
@@ -242,20 +251,14 @@ public class CLI implements UpdateListener {
             return;
         }
 
-        GameData localGameData = games.get(gameNumber);
+        GameData localGameData = games.get(gameNumber-1);
 
         // If the updated game is the observed game, re-render.
-        if (localGameData.game().equals(observedGame)) {
-            games.set(gameNumber, gameData);
+        if (localGameData.equals(observedGame)) {
+            games.set(gameNumber-1, gameData);
             observedGame = gameData;
             gameModeView.renderGame(observedGame.game());
         }
-    }
-
-    @Override
-    public void onDisconnect() {
-        inGameMode = false;
-        gameModeView.exitGameMode();
     }
 
     public interface CLIRunnable {
@@ -287,6 +290,8 @@ public class CLI implements UpdateListener {
         handlerMap.put("join", this::join);
         handlerMap.put("observe", this::observe);
         handlerMap.put("move", this::makeMove);
+        handlerMap.put("leave", args -> leaveGame());
+        handlerMap.put("redraw", args -> redraw());
         return handlerMap;
     }
 
@@ -319,10 +324,6 @@ public class CLI implements UpdateListener {
             handlers.get(operation).run(Arrays.copyOfRange(commandArray, 1, commandArray.length));
         } catch (Exception e) {
             System.out.println("An error occurred and the operation was unsuccessful.");
-        }
-
-        if (inGameMode) {
-            gameModeView.renderGame(observedGame.game());
         }
 
         return !command.equals("quit");

@@ -2,6 +2,6 @@ package serverfacade;
 
 import websocket.messages.ServerMessage;
 
-public interface MessageHandler {
+public interface ServerMessageHandler {
     public void onMessage(ServerMessage message);
 }

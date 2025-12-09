@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.ArrayList;
 
 
-public class ServerFacade implements MessageHandler {
+public class ServerFacade implements ServerMessageHandler {
     private final String baseUrl;
     private final Gson gson = new Gson();
     private final Client client;
@@ -100,6 +100,8 @@ public class ServerFacade implements MessageHandler {
                 "PUT",
                 gson.toJson(
                         Map.of("gameID", gameID, "playerColor", color.toString())));
+        UserGameCommand command = new UserGameCommand(CONNECT, client.getAuthToken(), gameID);
+        webSocketClient.sendMessage(gson.toJson(command));
     }
 
     public void clear() throws Exception {
@@ -113,10 +115,19 @@ public class ServerFacade implements MessageHandler {
         webSocketClient.sendMessage(gson.toJson(command));
     }
 
+    public void leaveGame(int gameId) throws Exception {
+        UserGameCommand command = new UserGameCommand(LEAVE, client.getAuthToken(), gameId);
+        webSocketClient.sendMessage(gson.toJson(command));
+    }
+
     @Override
     public void onMessage(ServerMessage message) {
         if (ServerMessageType.NOTIFICATION == message.getServerMessageType()) {
             updateListener.onNotification(message.getMessage());
+        } else if (ServerMessageType.LOAD_GAME == message.getServerMessageType()) {
+            updateListener.onLoadGame(message.getGame());
+        } else {
+            updateListener.onNotification("An error occurred");
         }
     }
 }
