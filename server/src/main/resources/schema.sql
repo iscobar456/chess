@@ -18,6 +18,7 @@ CREATE TABLE games (
     blackusername VARCHAR(255),
     gamename VARCHAR(255),
     game MEDIUMTEXT,
+    isover BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (id),
     FOREIGN KEY (whiteusername) REFERENCES users(username) ON DELETE SET NULL,
     FOREIGN KEY (blackusername) REFERENCES users(username) ON DELETE SET NULL

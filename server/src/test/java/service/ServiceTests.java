@@ -201,7 +201,7 @@ public class ServiceTests {
         AuthData auth = new AuthData(authToken, username1);
         dataAccess.saveAuth(auth);
 
-        GameData game = new GameData("game1", 4, username1, username2, new ChessGame());
+        GameData game = new GameData("game1", 4, username1, username2, new ChessGame(), false);
         dataAccess.saveGame(game);
 
         assertNotNull(dataAccess.getUser(username1));

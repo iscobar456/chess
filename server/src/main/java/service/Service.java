@@ -89,7 +89,7 @@ public class Service {
             throw new BadRequestResponse("must provide game name");
         }
         int newID = 1 + dataAccess.getGames().stream().mapToInt(GameData::gameID).max().orElse(0);
-        GameData game = new GameData(gameName, newID, null, null, new ChessGame());
+        GameData game = new GameData(gameName, newID, null, null, new ChessGame(), false);
         dataAccess.saveGame(game);
         return newID;
     }
@@ -103,13 +103,13 @@ public class Service {
             if (game.blackUsername() != null) {
                 throw new ForbiddenResponse("already taken");
             }
-            GameData newGame = new GameData(game.gameName(), gameID, game.whiteUsername(), username, game.game());
+            GameData newGame = new GameData(game.gameName(), gameID, game.whiteUsername(), username, game.game(), false);
             dataAccess.saveGame(newGame);
         } else if (color == ChessGame.TeamColor.WHITE) {
             if (game.whiteUsername() != null) {
                 throw new ForbiddenResponse("already taken");
             }
-            GameData newGame = new GameData(game.gameName(), gameID, username, game.blackUsername(), game.game());
+            GameData newGame = new GameData(game.gameName(), gameID, username, game.blackUsername(), game.game(), false);
             dataAccess.saveGame(newGame);
         } else {
             throw new BadRequestResponse();
@@ -118,6 +118,9 @@ public class Service {
 
     public GameData makeMove(int gameID, ChessMove move) throws InvalidMoveException {
         GameData gameData = dataAccess.getGame(gameID);
+        if (gameData.isOver()) {
+            throw new InvalidMoveException("Game is over");
+        }
         ChessGame game = gameData.game();
         game.makeMove(move);
         var newGameData = new GameData(
@@ -125,10 +128,52 @@ public class Service {
                 gameData.gameID(),
                 gameData.whiteUsername(),
                 gameData.blackUsername(),
-                game);
+                game,
+                false);
         dataAccess.saveGame(newGameData);
         return newGameData;
     }
+
+    public void leaveGame(int gameId, String username) {
+        var game = dataAccess.getGame(gameId);
+        GameData newGame;
+        if (game == null) {
+            throw new BadRequestResponse("invalid game id");
+        }
+        if (username.equals(game.whiteUsername())) {
+            newGame = new GameData(
+                    game.gameName(),
+                    game.gameID(),
+                    null,
+                    game.blackUsername(),
+                    game.game(),
+                    game.isOver());
+        } else if (username.equals(game.blackUsername())) {
+            newGame = new GameData(
+                    game.gameName(),
+                    game.gameID(),
+                    game.whiteUsername(),
+                    null,
+                    game.game(),
+                    game.isOver());
+        } else {
+            throw new BadRequestResponse("invalid username");
+        }
+        dataAccess.saveGame(newGame);
+    }
+
+    public void closeGame(int gameId) {
+        GameData gameData = dataAccess.getGame(gameId);
+        var newGameData = new GameData(
+                gameData.gameName(),
+                gameData.gameID(),
+                gameData.whiteUsername(),
+                gameData.blackUsername(),
+                gameData.game(),
+                true);
+        dataAccess.saveGame(newGameData);
+    }
+
 
     public void clear() {
         dataAccess.clear();

@@ -2,28 +2,22 @@ package server.websocket;
 
 import chess.ChessGame;
 import chess.ChessMove;
-import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import data.GameData;
-import io.javalin.http.UnauthorizedResponse;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsCloseHandler;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
-import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.websocket.api.Session;
 import service.Service;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 import static websocket.messages.ServerMessage.ServerMessageType.*;
-
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
+import java.lang.Thread;
 
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
@@ -49,6 +43,16 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             return;
         }
         observers.get(gameId).remove(session);
+    }
+
+    private ChessGame.TeamColor getPlayerColor(String username, GameData gameData) {
+        ChessGame.TeamColor color = null;
+        if (username.equals(gameData.whiteUsername())) {
+            color = ChessGame.TeamColor.WHITE;
+        } else if (username.equals(gameData.blackUsername())) {
+            color = ChessGame.TeamColor.BLACK;
+        }
+        return color;
     }
 
     private String getPlayerColorString(String username, GameData gameData) {
@@ -87,6 +91,35 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         return username;
     }
 
+    private void sendNotification(int gameId, Session excludeSession, String message) throws IOException {
+        var notification = new ServerMessage(NOTIFICATION, message, null, null);
+        observers.get(gameId).broadcast(excludeSession, gson.toJson(notification));
+    }
+
+    private String assembleMovedString(String username, GameData gameData, ChessMove move) {
+        var colorString = getPlayerColorString(username, gameData);
+        return String.format(
+                "%s moved %s to %s.",
+                colorString,
+                move.getStartPosition().toString(),
+                move.getEndPosition().toString());
+    }
+
+    private void handleEndGame(GameData gameData, String username, Session session) throws IOException {
+        var gameId = gameData.gameID();
+        var playerColor = getPlayerColor(username, gameData);
+        ChessGame.TeamColor opponentColor = playerColor == ChessGame.TeamColor.WHITE
+                ? ChessGame.TeamColor.WHITE
+                : ChessGame.TeamColor.BLACK;
+        if (gameData.game().isInCheckmate(opponentColor)) {
+            sendNotification(gameId, session, String.format("%s won", username));
+            service.closeGame(gameId);
+        } else if (gameData.game().isInStalemate(opponentColor)) {
+            sendNotification(gameId, session, "stalemate");
+            service.closeGame(gameId);
+        }
+    }
+
     private void handleGameConnection(WsMessageContext ctx, UserGameCommand command) throws IOException {
         var gameId = command.getGameID();
         addToObservers(ctx.session, gameId);
@@ -95,17 +128,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             var gameData = validateGameId(command);
             var username = validateAuthToken(command);
 
-            var loadGameMessage = new ServerMessage(LOAD_GAME, null, gameData);
+            var loadGameMessage = new ServerMessage(LOAD_GAME, null, null, gameData);
             ctx.session.getRemote().sendString(gson.toJson(loadGameMessage));
 
-            var notificationString = String.format(
-                    "%s has joined as %s.", username, getStatusString(username, gameData));
-            var connectedNotification = new ServerMessage(NOTIFICATION, notificationString, null);
-            observers.get(gameId).broadcast(ctx.session, gson.toJson(connectedNotification));
+            sendNotification(gameId, ctx.session, String.format(
+                    "%s has joined as %s.",
+                    username,
+                    getStatusString(username, gameData)));
 
         } catch (Exception e) {
             ctx.session.getRemote().sendString(gson.toJson(
-                    new ServerMessage(ERROR, e.getMessage())));
+                    new ServerMessage(ERROR, null, e.getMessage(), null)));
         }
     }
 
@@ -115,24 +148,27 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             var gameData = validateGameId(command);
             var username = validateAuthToken(command);
+
+            // Check if user can make move.
+            ChessGame.TeamColor playerColor = getPlayerColor(username, gameData);
+            if (playerColor == null) {
+                throw new Exception("Observer cannot make moves");
+            } else if (playerColor != gameData.game().getTeamTurn()) {
+                throw new Exception("It's not your turn");
+            }
+
             var move = command.getMove();
             var newGameData = service.makeMove(gameId, move);
 
-            var loadGameMessage = new ServerMessage(LOAD_GAME, null, newGameData);
+            var loadGameMessage = new ServerMessage(LOAD_GAME, null, null, newGameData);
             observers.get(gameId).broadcast(null, gson.toJson(loadGameMessage));
 
-            var colorString = getPlayerColorString(username, gameData);
-            var notification = String.format(
-                    "%s moved %s to %s.",
-                    colorString,
-                    move.getStartPosition().toString(),
-                    move.getEndPosition().toString());
-            var notificationMessage = new ServerMessage(NOTIFICATION, notification, null);
-            observers.get(gameId).broadcast(ctx.session, gson.toJson(notificationMessage));
+            sendNotification(gameId, ctx.session, assembleMovedString(username, gameData, move));
+            handleEndGame(newGameData, username, ctx.session);
 
         } catch (Exception e) {
             ctx.session.getRemote().sendString(gson.toJson(
-                    new ServerMessage(ERROR, e.getMessage())));
+                    new ServerMessage(ERROR, null, e.getMessage(), null)));
         }
     }
 
@@ -140,13 +176,35 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         var gameId = command.getGameID();
         try {
             removeFromObservers(ctx.session, gameId);
+            var gameData = validateGameId(command);
             var username = validateAuthToken(command);
-            var notification = String.format("%s has left the game.", username);
-            var notificationMessage = new ServerMessage(NOTIFICATION, notification, null);
-            observers.get(gameId).broadcast(ctx.session, gson.toJson(notificationMessage));
+            if (username.equals(gameData.whiteUsername()) || username.equals(gameData.blackUsername())) {
+                service.leaveGame(gameId, username);
+            }
+            sendNotification(gameId, ctx.session, String.format("%s has left the game.", username));
         } catch (Exception e) {
             ctx.session.getRemote().sendString(gson.toJson(
-                    new ServerMessage(ERROR, e.getMessage())));
+                    new ServerMessage(ERROR, null, e.getMessage(), null)));
+        }
+    }
+
+    private void handleResignCommand(WsMessageContext ctx, UserGameCommand command) throws IOException {
+        var gameId = command.getGameID();
+        try {
+            var username = validateAuthToken(command);
+            var gameData = validateGameId(command);
+            if (gameData.isOver()) {
+                throw new Exception("Game already over");
+            } else if (!username.equals(gameData.whiteUsername()) && !username.equals(gameData.blackUsername())) {
+                throw new Exception("Observer cannot resign");
+            }
+            service.closeGame(gameId);
+            var notificationString = String.format("%s has resigned.", username);
+            sendNotification(gameId, null, notificationString);
+            removeFromObservers(ctx.session, gameId);
+        } catch (Exception e) {
+            ctx.session.getRemote().sendString(gson.toJson(
+                    new ServerMessage(ERROR, null, e.getMessage(), null)));
         }
     }
 
@@ -160,36 +218,16 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     public void handleMessage(WsMessageContext ctx) throws IOException {
         UserGameCommand command = gson.fromJson(ctx.message(), UserGameCommand.class);
         System.out.println("received message");
-        switch (command.getCommandType()) {
-            case CONNECT -> {
-                try {
-                    handleGameConnection(ctx, command);
-                } catch (UnauthorizedResponse response) {
-                    var message = new ServerMessage(ServerMessage.ServerMessageType.ERROR, "Invalid authtoken");
-                    ctx.session.getRemote().sendString(gson.toJson(message));
-                }
+        try {
+            switch (command.getCommandType()) {
+                case CONNECT -> handleGameConnection(ctx, command);
+                case MAKE_MOVE -> handleMoveCommand(ctx, command);
+                case LEAVE -> handleLeaveCommand(ctx, command);
+                case RESIGN -> handleResignCommand(ctx, command);
             }
-            case MAKE_MOVE -> {
-                try {
-                    service.validateToken(command.getAuthToken());
-                    service.makeMove(command.getGameID(), command.getMove());
-                } catch (UnauthorizedResponse response) {
-                    var message = new ServerMessage(ServerMessage.ServerMessageType.ERROR, "Invalid authtoken");
-                    ctx.session.getRemote().sendString(gson.toJson(message));
-                } catch (InvalidMoveException e) {
-                    var message = new ServerMessage(ServerMessage.ServerMessageType.ERROR, "Invalid move");
-                    ctx.session.getRemote().sendString(gson.toJson(message));
-                }
-            }
-            case LEAVE -> {
-                try {
-                    service.validateToken(command.getAuthToken());
-                } catch (UnauthorizedResponse response) {
-                    var message = new ServerMessage(ServerMessage.ServerMessageType.ERROR, "Invalid authtoken");
-                }
-            }
-            case RESIGN -> {
-            }
+        } catch (Exception e) {
+            var message = new ServerMessage(ServerMessage.ServerMessageType.ERROR, "A server error occurred");
+            ctx.session.getRemote().sendString(gson.toJson(message));
         }
     }
 

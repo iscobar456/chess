@@ -28,7 +28,7 @@ public class DataAccessTests {
         int gameID = 1;
         String gameName = "game1";
         ChessGame chessGame = new ChessGame();
-        dataAccess.saveGame(new GameData(gameName, gameID, username1, username2, chessGame));
+        dataAccess.saveGame(new GameData(gameName, gameID, username1, username2, chessGame, false));
 
         // Test getGame()
         GameData game = dataAccess.getGame(gameID);
@@ -43,7 +43,7 @@ public class DataAccessTests {
         int gameID = 1;
         String gameName = "game1";
         ChessGame chessGame = new ChessGame();
-        dataAccess.saveGame(new GameData(gameName, gameID, null, null, chessGame));
+        dataAccess.saveGame(new GameData(gameName, gameID, null, null, chessGame, false));
 
         // Test getGame()
         assertNull(dataAccess.getGame(2));
@@ -62,11 +62,11 @@ public class DataAccessTests {
         dataAccess.saveUser(new UserData(username2, password, email));
 
         // Create games
-        dataAccess.saveGame(new GameData("game1", 1, username1, username2, new ChessGame()));
-        dataAccess.saveGame(new GameData("game2", 2, username1, username2, new ChessGame()));
-        dataAccess.saveGame(new GameData("game3", 3, username1, username2, new ChessGame()));
-        dataAccess.saveGame(new GameData("game4", 4, username1, username2, new ChessGame()));
-        dataAccess.saveGame(new GameData("game5", 5, username1, username2, new ChessGame()));
+        dataAccess.saveGame(new GameData("game1", 1, username1, username2, new ChessGame(), false));
+        dataAccess.saveGame(new GameData("game2", 2, username1, username2, new ChessGame(), false));
+        dataAccess.saveGame(new GameData("game3", 3, username1, username2, new ChessGame(), false));
+        dataAccess.saveGame(new GameData("game4", 4, username1, username2, new ChessGame(), false));
+        dataAccess.saveGame(new GameData("game5", 5, username1, username2, new ChessGame(), false));
 
         // Test getGames()
         ArrayList<GameData> games = dataAccess.getGames();
@@ -101,7 +101,7 @@ public class DataAccessTests {
         int gameID = 1;
         String gameName = "game1";
         ChessGame chessGame = new ChessGame();
-        dataAccess.saveGame(new GameData(gameName, gameID, username1, username2, chessGame));
+        dataAccess.saveGame(new GameData(gameName, gameID, username1, username2, chessGame, false));
 
         // Test saveGame()
         GameData game = dataAccess.getGame(gameID);
@@ -121,7 +121,7 @@ public class DataAccessTests {
                 1,
                 "username",
                 null,
-                new ChessGame())));
+                new ChessGame(), false)));
     }
 
     @Test
@@ -287,8 +287,8 @@ public class DataAccessTests {
         dataAccess.saveUser(new UserData(username2, password, email));
 
         // Save games
-        dataAccess.saveGame(new GameData("game1", 1, username1, username2, new ChessGame()));
-        dataAccess.saveGame(new GameData("game2", 2, username1, username2, new ChessGame()));
+        dataAccess.saveGame(new GameData("game1", 1, username1, username2, new ChessGame(), false));
+        dataAccess.saveGame(new GameData("game2", 2, username1, username2, new ChessGame(), false));
 
         // Save auths
         dataAccess.saveAuth(new AuthData("uuid-uuid-uuid-uu1d", username1));

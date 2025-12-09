@@ -123,7 +123,8 @@ public class SQLDataAccess implements DataAccess {
                             result.getInt(1),
                             result.getString(2),
                             result.getString(3),
-                            (ChessGame) gson.fromJson(result.getString(5), ChessGame.class)));
+                            (ChessGame) gson.fromJson(result.getString(5), ChessGame.class),
+                            result.getBoolean(6)));
                 }
                 return games;
             }
@@ -146,7 +147,8 @@ public class SQLDataAccess implements DataAccess {
                         result.getInt(1),
                         result.getString(2),
                         result.getString(3),
-                        (ChessGame) gson.fromJson(result.getString(5), ChessGame.class));
+                        (ChessGame) gson.fromJson(result.getString(5), ChessGame.class),
+                        result.getBoolean(6));
             }
         } catch (Exception e) {
             throw new InternalServerErrorResponse("internal error");
@@ -157,14 +159,16 @@ public class SQLDataAccess implements DataAccess {
     public void saveGame(GameData data) {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(
-                    "INSERT INTO games (id, whiteusername, blackusername, gamename, game) VALUES (?,?,?,?,?)" +
+                    "INSERT INTO games (id, whiteusername, blackusername, gamename, game, isover) VALUES (?,?,?,?,?,?)" +
                             " ON DUPLICATE KEY UPDATE whiteusername = VALUES(whiteusername)," +
-                            " blackusername = VALUES(blackusername), gamename = VALUES(gamename), game = VALUES(game)")) {
+                            " blackusername = VALUES(blackusername), gamename = VALUES(gamename), game = VALUES(game)," +
+                            " isover = VALUES(isover)")) {
                 preparedStatement.setInt(1, data.gameID());
                 preparedStatement.setString(2, data.whiteUsername());
                 preparedStatement.setString(3, data.blackUsername());
                 preparedStatement.setString(4, data.gameName());
                 preparedStatement.setString(5, gson.toJson(data.game()));
+                preparedStatement.setBoolean(6, data.isOver());
                 preparedStatement.executeUpdate();
             }
         } catch (Exception e) {
