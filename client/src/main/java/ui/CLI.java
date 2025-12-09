@@ -11,7 +11,6 @@ public class CLI implements UpdateListener {
     Scanner scanner;
     ServerFacade server;
     boolean isAuthorized = false;
-    HashMap<String, CLIRunnable> handlers;
     ArrayList<GameData> games;
     GameData observedGame;
     ChessGame.TeamColor perspective;
@@ -23,7 +22,6 @@ public class CLI implements UpdateListener {
         scanner = new Scanner(System.in);
         server = new ServerFacade("http", "localhost", 8080, this);
         games = new ArrayList<>();
-        handlers = constructHandlerMap();
         inGameMode = false;
     }
 
@@ -48,15 +46,7 @@ public class CLI implements UpdateListener {
                     | quit                         : Quit the game            |
                     | help                         : Display help message     |""");
         } else if (isAuthorized) {
-            gameModeView.clearScreen
-            System.out.print("""
-                    |-----------COMMAND------------:-----------INFO-----------|
-                    | redraw                       : Redraw the board         |
-                    | leave                        : Leave the game           |
-                    | move <start> <end> <promote> : Move a piece             |
-                    | resign                       : Forfeit the game         |
-                    | highlight                    : Highlight legal moves    |
-                    | help                         : Display help message     |""");
+            gameModeView.printHelp();
         } else {
             System.out.print("""
                     |----------------COMMAND-----------------:------------INFO------------|
@@ -161,7 +151,13 @@ public class CLI implements UpdateListener {
 
         try {
             int gameNumber = Integer.parseInt(args[0]);
-            int gameID = games.get(gameNumber - 1).gameID();
+            GameData gameData = games.get(gameNumber - 1);
+            int gameID = gameData.gameID();
+
+            if (gameData.isOver()) {
+                System.out.println("Game is closed");
+                return;
+            }
 
             String colorString = args[1];
             ChessGame.TeamColor color;
@@ -180,10 +176,13 @@ public class CLI implements UpdateListener {
             server.joinGame(gameID, color);
         } catch (NumberFormatException | IndexOutOfBoundsException e) {
             System.out.println("Invalid game ID");
+            inGameMode = false;
         } catch (Client.BadRequestResponse e) {
             System.out.println("Invalid game ID or color");
+            inGameMode = false;
         } catch (Client.ForbiddenResponse e) {
             System.out.println("Position already filled");
+            inGameMode = false;
         }
     }
 
@@ -202,7 +201,6 @@ public class CLI implements UpdateListener {
         }
     }
 
-
     private void makeMove(String[] args) {
         if (args.length < 2) {
             gameModeView.notify("Must provide a starting and ending position. (e.g., B2 C2)");
@@ -219,15 +217,34 @@ public class CLI implements UpdateListener {
             );
             observedGame.game().makeMove(move);
             server.makeMove(move, observedGame.gameID());
+        } catch (InvalidMoveException e) {
+            gameModeView.notify(e.getMessage());
         } catch (Exception e) {
             gameModeView.notify("Invalid move. Must provide a valid starting, ending position, " +
                     "and a promotion piece if applicable. (e.g., B3 A4 QUEEN)");
         }
     }
 
+    private void highlightMoves(String[] args) {
+        if (args.length == 0) {
+            gameModeView.notify("Must provide a piece");
+        }
+        try {
+            var pos = new ChessPosition(args[0]);
+            gameModeView.renderGameWithHighlights(observedGame.game(), pos);
+        } catch (Exception e) {
+            gameModeView.notify("Invalid piece position");
+        }
+    }
+
     private void leaveGame() throws Exception {
         server.leaveGame(observedGame.gameID());
+        gameModeView.exitGameMode();
         inGameMode = false;
+    }
+
+    private void resign() throws Exception {
+        server.resign(observedGame.gameID());
     }
 
     private void redraw() {
@@ -261,51 +278,56 @@ public class CLI implements UpdateListener {
         }
     }
 
-    public interface CLIRunnable {
-        void run(String[] args) throws Exception;
-    }
-
     public void handleAuthorization(String operation) throws Exception {
         if (operation.equals("login")
                 || operation.equals("register")) {
             if (isAuthorized) {
                 throw new Exception("Already logged in");
             }
-        } else if(!operation.equals("help")){
-            if (!isAuthorized) {
-                throw new Exception("Not logged in");
+        }
+    }
+
+    public void runCommand(String operation, String[] commandArgs) throws Exception {
+        if (inGameMode) {
+            switch (operation) {
+                case "help" -> help();
+                case "redraw" -> redraw();
+                case "highlight" -> highlightMoves(commandArgs);
+                case "move" -> makeMove(commandArgs);
+                case "leave" -> leaveGame();
+                case "resign" -> resign();
+                case "quit" -> quit();
+                default -> gameModeView.notify("Not a valid command");
+            }
+        } else if (isAuthorized) {
+            switch (operation) {
+                case "help" -> help();
+                case "list" -> list();
+                case "create" -> create(commandArgs);
+                case "join" -> join(commandArgs);
+                case "observe" -> observe(commandArgs);
+                case "logout" -> logout();
+                case "quit" -> quit();
+                default -> System.out.println("Not a valid command");
+            }
+        } else {
+            switch (operation) {
+                case "help" -> help();
+                case "register" -> register(commandArgs);
+                case "login" -> login(commandArgs);
+                case "quit" -> quit();
+                default -> System.out.println("Not a valid command.");
             }
         }
     }
 
-    private HashMap<String, CLIRunnable> constructHandlerMap() {
-        HashMap<String, CLIRunnable> handlerMap = new HashMap<>();
-        handlerMap.put("help", args -> help());
-        handlerMap.put("quit", args -> quit());
-        handlerMap.put("login", this::login);
-        handlerMap.put("register", this::register);
-        handlerMap.put("logout", args -> logout());
-        handlerMap.put("create", this::create);
-        handlerMap.put("list", args -> list());
-        handlerMap.put("join", this::join);
-        handlerMap.put("observe", this::observe);
-        handlerMap.put("move", this::makeMove);
-        handlerMap.put("leave", args -> leaveGame());
-        handlerMap.put("redraw", args -> redraw());
-        return handlerMap;
-    }
-
     public boolean processCommand(String command) {
-
         String[] commandArray = command.split("\\s+");
         if (commandArray.length == 0) {
             return true;
         }
         String operation = commandArray[0].toLowerCase(Locale.ROOT);
-        if (!handlers.containsKey(operation)) {
-            System.out.println("Not a valid command");
-            return true;
-        }
+        String[] commandArgs = Arrays.copyOfRange(commandArray, 1, commandArray.length);
 
         try {
             handleAuthorization(operation);
@@ -321,9 +343,14 @@ public class CLI implements UpdateListener {
                     || operation.equals("observe")) {
                 games = server.getGames();
             }
-            handlers.get(operation).run(Arrays.copyOfRange(commandArray, 1, commandArray.length));
+            runCommand(operation, commandArgs);
         } catch (Exception e) {
             System.out.println("An error occurred and the operation was unsuccessful.");
+        }
+
+        if (!inGameMode) {
+            System.out.print("\n>>> ");
+            System.out.flush();
         }
 
         return !command.equals("quit");

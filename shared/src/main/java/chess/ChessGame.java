@@ -40,18 +40,18 @@ public class ChessGame {
      * @return Set of valid moves for requested piece, or null if no piece at
      * startPosition
      */
-    public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        ChessBoard originalBoard = board.copy();
+    public ArrayList<ChessMove> validMoves(ChessPosition startPosition) {
+        var validMoves = new ArrayList<ChessMove>();
         ChessPiece piece = board.getPiece(startPosition);
+        if (piece == null) {
+            return validMoves;
+        }
+
+        ChessBoard originalBoard = board.copy();
         TeamColor originalColor = activeTeam;
         setTeamTurn(piece.getTeamColor());
 
-        if (piece == null) {
-            return Collections.emptyList();
-        }
-
         var moves = piece.pieceMoves(board, startPosition);
-        var validMoves = new ArrayList<ChessMove>();
         for (var move : moves) {
             movePiece(move);
             if (!isInCheck(activeTeam)) {

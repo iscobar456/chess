@@ -26,14 +26,6 @@ public class UserGameCommand {
         this.gameID = gameID;
     }
 
-    // CONNECT constructor
-    public UserGameCommand(CommandType commandType, String authToken, Integer gameID, ChessGame.TeamColor color) {
-        this.commandType = commandType;
-        this.authToken = authToken;
-        this.gameID = gameID;
-        this.color = color;
-    }
-
     // MAKE_MOVE constructor
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID, ChessMove move) {
         this.commandType = commandType;

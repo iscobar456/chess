@@ -1,13 +1,20 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
+
+import java.util.ArrayList;
 
 public class BoardView {
     ChessGame game;
     Tile[][] board;
     ChessGame.TeamColor perspective;
+    private final char whiteBg = (char) 252;
+    private final char blackBg = (char) 243;
+    private final char whiteFg = (char) 255;
+    private final char blackFg = (char) 232;
 
     public BoardView() {
         board = new Tile[10][10];
@@ -36,9 +43,9 @@ public class BoardView {
         for (int i = 1; i < 9; i++) {
             for (int j = 1; j < 9; j++) {
                 if ((i + j) % 2 == 0) {
-                    board[i][j] = new Tile((char) 252, (char) 0, " ");
+                    board[i][j] = new Tile(whiteBg, (char) 0, " ");
                 } else {
-                    board[i][j] = new Tile((char) 243, (char) 0, " ");
+                    board[i][j] = new Tile(blackBg, (char) 0, " ");
                 }
             }
         }
@@ -56,8 +63,8 @@ public class BoardView {
         Tile tile = board[pos.getRow()][pos.getColumn()];
         tile.setContent(piece.toString());
         tile.setFg(piece.getTeamColor() == ChessGame.TeamColor.WHITE
-                ? (char) 255
-                : (char) 232);
+                ? whiteFg
+                : blackFg);
     }
 
     private void placePieces() {
@@ -81,16 +88,17 @@ public class BoardView {
         board = newBoard;
     }
 
-    public String render(ChessGame game, ChessGame.TeamColor perspective) {
+    public void constructBoard(ChessGame game, ChessGame.TeamColor perspective) {
         this.game = game;
         this.perspective = perspective;
         constructEmptyBoard();
         placePieces();
+    }
 
+    public String render() {
         if (perspective == ChessGame.TeamColor.BLACK) {
             invertBoard();
         }
-
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
@@ -98,9 +106,20 @@ public class BoardView {
             }
             output.append('\n');
         }
-
         return output.toString();
-    }
+    };
 
-    ;
+    public void highlightMoves(ArrayList<ChessMove> moves) {
+        for (var move : moves) {
+            int row = 9 - move.getEndPosition().getRow();
+            int col = move.getEndPosition().getColumn();
+            var currentTile = board[row][col];
+            var currentBg = currentTile.getBg();
+            if (currentBg == whiteBg) {
+                currentTile.setBg((char) 194);
+            } else {
+                currentTile.setBg((char) 113);
+            }
+        }
+    }
 }

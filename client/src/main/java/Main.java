@@ -12,8 +12,9 @@ public class Main {
             System.out.println("Unable to connect to server");
             return;
         }
+        System.out.print(">>> ");
+        System.out.flush();
         while (true) {
-            System.out.printf("%n>>> ");
             Scanner scanner = new Scanner(System.in);
             String command = scanner.nextLine();
             if (!cli.processCommand(command)) {

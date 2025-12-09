@@ -201,7 +201,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             service.closeGame(gameId);
             var notificationString = String.format("%s has resigned.", username);
             sendNotification(gameId, null, notificationString);
-            removeFromObservers(ctx.session, gameId);
         } catch (Exception e) {
             ctx.session.getRemote().sendString(gson.toJson(
                     new ServerMessage(ERROR, null, e.getMessage(), null)));

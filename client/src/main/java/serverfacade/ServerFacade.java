@@ -2,6 +2,7 @@ package serverfacade;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPosition;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import data.GameData;
@@ -111,12 +112,17 @@ public class ServerFacade implements ServerMessageHandler {
     }
 
     public void makeMove(ChessMove move, int gameId) throws Exception {
-        UserGameCommand command = new UserGameCommand(MAKE_MOVE, client.getAuthToken(), gameId);
+        UserGameCommand command = new UserGameCommand(MAKE_MOVE, client.getAuthToken(), gameId, move);
         webSocketClient.sendMessage(gson.toJson(command));
     }
 
     public void leaveGame(int gameId) throws Exception {
         UserGameCommand command = new UserGameCommand(LEAVE, client.getAuthToken(), gameId);
+        webSocketClient.sendMessage(gson.toJson(command));
+    }
+
+    public void resign(int gameId) throws Exception {
+        UserGameCommand command = new UserGameCommand(RESIGN, client.getAuthToken(), gameId);
         webSocketClient.sendMessage(gson.toJson(command));
     }
 
@@ -127,7 +133,7 @@ public class ServerFacade implements ServerMessageHandler {
         } else if (ServerMessageType.LOAD_GAME == message.getServerMessageType()) {
             updateListener.onLoadGame(message.getGame());
         } else {
-            updateListener.onNotification("An error occurred");
+            updateListener.onNotification(message.getErrorMessage());
         }
     }
 }
