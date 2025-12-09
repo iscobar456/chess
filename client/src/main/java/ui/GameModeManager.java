@@ -5,18 +5,12 @@ import chess.ChessMove;
 import chess.ChessPosition;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
 public class GameModeManager {
-    private final String helpString = """
-                |-----------COMMAND------------:-----------INFO-----------|
-                | redraw                       : Redraw the board         |
-                | leave                        : Leave the game           |
-                | move <start> <end> <promote> : Move a piece             |
-                | resign                       : Forfeit the game         |
-                | highlight                    : Highlight legal moves    |
-                | help                         : Display help message     |""";
     ChessGame.TeamColor perspective;
     boolean isObserver;
     BoardView boardView;
@@ -68,9 +62,35 @@ public class GameModeManager {
     public void printHelp() {
         System.out.print(ERASE_SCREEN);
         System.out.print(moveCursorToLocation(2,1));
-        System.out.print(helpString);
+        String playerHelpString = """
+                |-----------COMMAND------------:-----------INFO-----------|
+                | redraw                       : Redraw the board         |
+                | leave                        : Leave the game           |
+                | move <start> <end> <promote> : Move a piece             |
+                | resign                       : Forfeit the game         |
+                | highlight                    : Highlight legal moves    |
+                | help                         : Display help message     |""";
+        String observerHelpString = """
+                |-----------COMMAND------------:-----------INFO-----------|
+                | redraw                       : Redraw the board         |
+                | leave                        : Leave the game           |
+                | highlight                    : Highlight legal moves    |
+                | help                         : Display help message     |""";
+        System.out.print(isObserver ? observerHelpString : playerHelpString);
         drawPrompt();
         System.out.flush();
+    }
+
+    public boolean confirmResign() {
+        System.out.print(moveCursorToLocation(1,1));
+        System.out.print(ERASE_LINE);
+        System.out.print("Are you sure you want to resign? (y/n): ");
+        System.out.flush();
+        Scanner scanner = new Scanner(System.in);
+        String confirm = scanner.nextLine().toLowerCase(Locale.ROOT);
+        drawPrompt();
+        System.out.flush();
+        return confirm.equals("y");
     }
 
     public void exitGameMode() {

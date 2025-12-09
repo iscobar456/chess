@@ -193,11 +193,15 @@ public class CLI implements UpdateListener {
         }
 
         try {
-            setObservedGame(Integer.parseInt(args[0]) - 1);
+            int gameNumber = Integer.parseInt(args[0]) - 1;
+            setObservedGame(gameNumber);
+            int gameId = games.get(gameNumber).gameID();
             inGameMode = true;
             gameModeView = new GameModeManager(ChessGame.TeamColor.WHITE, true);
+            server.observe(gameId);
         } catch (IndexOutOfBoundsException | NumberFormatException e) {
             System.out.println("Invalid game ID");
+            inGameMode = false;
         }
     }
 
@@ -244,7 +248,10 @@ public class CLI implements UpdateListener {
     }
 
     private void resign() throws Exception {
-        server.resign(observedGame.gameID());
+        boolean confirm = gameModeView.confirmResign();
+        if (confirm) {
+            server.resign(observedGame.gameID());
+        }
     }
 
     private void redraw() {

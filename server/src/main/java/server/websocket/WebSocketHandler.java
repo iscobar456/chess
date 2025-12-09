@@ -99,7 +99,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private String assembleMovedString(String username, GameData gameData, ChessMove move) {
         var colorString = getPlayerColorString(username, gameData);
         return String.format(
-                "%s moved %s to %s.",
+                "%s as %s moved %s to %s.",
+                username,
                 colorString,
                 move.getStartPosition().toString(),
                 move.getEndPosition().toString());
@@ -115,7 +116,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             sendNotification(gameId, session, String.format("%s won", username));
             service.closeGame(gameId);
         } else if (gameData.game().isInStalemate(opponentColor)) {
-            sendNotification(gameId, session, "stalemate");
+            sendNotification(gameId, session, username + " put the game in stalemate");
             service.closeGame(gameId);
         }
     }

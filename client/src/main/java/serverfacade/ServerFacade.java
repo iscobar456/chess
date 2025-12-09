@@ -105,6 +105,11 @@ public class ServerFacade implements ServerMessageHandler {
         webSocketClient.sendMessage(gson.toJson(command));
     }
 
+    public void observe(int gameId) throws Exception {
+        UserGameCommand command = new UserGameCommand(CONNECT, client.getAuthToken(), gameId);
+        webSocketClient.sendMessage(gson.toJson(command));
+    }
+
     public void clear() throws Exception {
         String urlString = String.format("%s/db", baseUrl);
         client.sendRequest(urlString, "DELETE", null);
