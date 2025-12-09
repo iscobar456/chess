@@ -45,6 +45,14 @@ public class ChessMove {
         return promotionPiece;
     }
 
+    public String humanReadable() {
+        String startColumn = String.valueOf((char) ('A' + getStartPosition().getColumn() -1));
+        String endColumn = String.valueOf((char) ('A' + getEndPosition().getColumn() -1));
+        String startRow = String.valueOf(getStartPosition().getRow());
+        String endRow = String.valueOf(getEndPosition().getRow());
+        return startColumn + startRow + " to " + endColumn + endRow;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {

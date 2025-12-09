@@ -97,11 +97,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private String assembleMovedString(String username, GameData gameData, ChessMove move) {
         var colorString = getPlayerColorString(username, gameData);
         return String.format(
-                "%s as %s moved %s to %s.",
+                "%s as %s moved %s.",
                 username,
                 colorString,
-                move.getStartPosition().toString(),
-                move.getEndPosition().toString());
+                move.humanReadable());
     }
 
     private void handleEndGame(GameData gameData, String username, Session session) throws IOException {
