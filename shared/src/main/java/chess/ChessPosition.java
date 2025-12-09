@@ -40,9 +40,9 @@ public class ChessPosition {
 
     private int charToPosInt(char c) throws Exception {
         if (c > 48 && c < 57) {
-            return (int)(c-48);
+            return c-48;
         } else if (c > 64 && c < 73) {
-            return (int)(c-64);
+            return c-64;
         } else {
             throw new Exception("Invalid position");
         }

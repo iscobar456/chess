@@ -13,7 +13,7 @@ public class Tile {
 
     @Override
     public String toString() {
-        return String.format("\u001B[48;5;%d;38;5;%dm %s \u001B[0m", (int) bg, (int) fg, content == null ? "" : content.toString());
+        return String.format("\u001B[48;5;%d;38;5;%dm %s \u001B[0m", (int) bg, (int) fg, content == null ? "" : content);
     }
 
     public char getBg() {
