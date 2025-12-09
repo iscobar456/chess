@@ -12,7 +12,6 @@ public class CLI implements UpdateListener {
     boolean isAuthorized = false;
     ArrayList<GameData> games;
     GameData observedGame;
-    ChessGame.TeamColor perspective;
     boolean inGameMode;
     GameModeManager gameModeView;
     String user;
@@ -131,7 +130,7 @@ public class CLI implements UpdateListener {
         }
     }
 
-    public void list() throws Exception {
+    public void list() {
         System.out.println("Game : White : Black");
         for (int i = 0; i < games.size(); i++) {
             var game = games.get(i);
