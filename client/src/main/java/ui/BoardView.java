@@ -12,9 +12,6 @@ public class BoardView {
     Tile[][] board;
     ChessGame.TeamColor perspective;
     private final char whiteBg = (char) 252;
-    private final char blackBg = (char) 243;
-    private final char whiteFg = (char) 255;
-    private final char blackFg = (char) 232;
 
     public BoardView() {
         board = new Tile[10][10];
@@ -31,8 +28,8 @@ public class BoardView {
 
     private void constructBorders() {
         for (int i = 0; i < 9; i++) {
-            board[0][0 + i] = new Tile((char) 254, (char) 232, " ");
-            board[0 + i][9] = new Tile((char) 254, (char) 232, " ");
+            board[0][i] = new Tile((char) 254, (char) 232, " ");
+            board[i][9] = new Tile((char) 254, (char) 232, " ");
             board[9][9 - i] = new Tile((char) 254, (char) 232, " ");
             board[9 - i][0] = new Tile((char) 254, (char) 232, " ");
         }
@@ -45,6 +42,7 @@ public class BoardView {
                 if ((i + j) % 2 == 0) {
                     board[i][j] = new Tile(whiteBg, (char) 0, " ");
                 } else {
+                    char blackBg = (char) 243;
                     board[i][j] = new Tile(blackBg, (char) 0, " ");
                 }
             }
@@ -62,6 +60,8 @@ public class BoardView {
         }
         Tile tile = board[pos.getRow()][pos.getColumn()];
         tile.setContent(piece.toString());
+        char whiteFg = (char) 255;
+        char blackFg = (char) 232;
         tile.setFg(piece.getTeamColor() == ChessGame.TeamColor.WHITE
                 ? whiteFg
                 : blackFg);
@@ -107,7 +107,7 @@ public class BoardView {
             output.append('\n');
         }
         return output.toString();
-    };
+    }
 
     public void highlightMoves(ArrayList<ChessMove> moves) {
         for (var move : moves) {
