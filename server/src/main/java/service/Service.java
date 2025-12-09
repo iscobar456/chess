@@ -116,16 +116,18 @@ public class Service {
         }
     }
 
-    public void makeMove(int gameID, ChessMove move) throws InvalidMoveException {
+    public GameData makeMove(int gameID, ChessMove move) throws InvalidMoveException {
         GameData gameData = dataAccess.getGame(gameID);
         ChessGame game = gameData.game();
         game.makeMove(move);
-        dataAccess.saveGame(new GameData(
+        var newGameData = new GameData(
                 gameData.gameName(),
                 gameData.gameID(),
                 gameData.whiteUsername(),
                 gameData.blackUsername(),
-                game));
+                game);
+        dataAccess.saveGame(newGameData);
+        return newGameData;
     }
 
     public void clear() {

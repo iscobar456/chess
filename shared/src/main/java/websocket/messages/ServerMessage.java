@@ -19,8 +19,6 @@ public class ServerMessage {
         LOAD_GAME,
         ERROR,
         NOTIFICATION,
-        DISCONNECT,
-        USER_COMMAND
     }
 
     public ServerMessage(ServerMessageType type, String message) {
