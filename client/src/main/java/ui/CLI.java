@@ -214,7 +214,7 @@ public class CLI implements UpdateListener {
                     new ChessPosition(args[0]),
                     new ChessPosition(args[1]),
                     args.length > 2
-                            ? ChessPiece.stringToType(args[3])
+                            ? ChessPiece.stringToType(args[2])
                             : null
             );
             observedGame.game().makeMove(move);
@@ -222,7 +222,7 @@ public class CLI implements UpdateListener {
         } catch (InvalidMoveException e) {
             gameModeView.notify(e.getMessage());
         } catch (Exception e) {
-            gameModeView.notify("Invalid move. Must provide a valid starting, ending position, " +
+            gameModeView.notify("Must provide a valid starting, ending position, " +
                     "and a promotion piece if applicable. (e.g., B3 A4 QUEEN)");
         }
     }
@@ -246,6 +246,9 @@ public class CLI implements UpdateListener {
     }
 
     private void resign() throws Exception {
+        if (observedGame.isOver()) {
+            gameModeView.notify("You cannot resign. Game over.");
+        }
         boolean confirm = gameModeView.confirmResign();
         if (confirm) {
             server.resign(observedGame.gameID());
@@ -295,8 +298,8 @@ public class CLI implements UpdateListener {
     public void runCommand(String operation, String[] commandArgs) throws Exception {
         if (inGameMode) {
             switch (operation) {
+                case "", "redraw" -> redraw();
                 case "help" -> help();
-                case "redraw" -> redraw();
                 case "highlight" -> highlightMoves(commandArgs);
                 case "move" -> makeMove(commandArgs);
                 case "leave" -> leaveGame();
@@ -306,6 +309,7 @@ public class CLI implements UpdateListener {
             }
         } else if (isAuthorized) {
             switch (operation) {
+                case "" -> {}
                 case "help" -> help();
                 case "list" -> list();
                 case "create" -> create(commandArgs);
@@ -317,6 +321,7 @@ public class CLI implements UpdateListener {
             }
         } else {
             switch (operation) {
+                case "" -> {}
                 case "help" -> help();
                 case "register" -> register(commandArgs);
                 case "login" -> login(commandArgs);

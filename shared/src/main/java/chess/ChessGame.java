@@ -87,7 +87,7 @@ public class ChessGame {
                 board.setPiece(new ChessPiece(activeTeam, move.getPromotionPiece()), move.getEndPosition());
             }
         } else {
-            throw new InvalidMoveException(move.toString());
+            throw new InvalidMoveException(move.humanReadable() + " is not a valid move");
         }
         setTeamTurn(activeTeam == TeamColor.BLACK ? TeamColor.WHITE : TeamColor.BLACK);
     }

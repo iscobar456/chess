@@ -50,6 +50,8 @@ public class GameModeManager {
     }
 
     public void notify(String message) {
+        System.out.print(moveCursorToLocation(4, 1));
+        System.out.print(ERASE_LINE);
         System.out.print(moveCursorToLocation(3, 1));
         System.out.print(ERASE_LINE);
         System.out.print(message);

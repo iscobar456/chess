@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -52,6 +53,7 @@ public class ChessPosition {
         if (pos.length() != 2) {
             throw new Exception("Invalid position");
         }
+        pos = pos.toUpperCase(Locale.ROOT);
         row = charToPosInt(pos.charAt(1));
         col = charToPosInt(pos.charAt(0));
     }

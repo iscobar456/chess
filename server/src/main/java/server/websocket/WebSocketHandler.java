@@ -103,18 +103,23 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 move.humanReadable());
     }
 
-    private void handleEndGame(GameData gameData, String username, Session session) throws IOException {
+    private void handleEndGame(GameData gameData, String username) throws IOException {
         var gameId = gameData.gameID();
         var playerColor = getPlayerColor(username, gameData);
         ChessGame.TeamColor opponentColor = playerColor == ChessGame.TeamColor.WHITE
-                ? ChessGame.TeamColor.WHITE
-                : ChessGame.TeamColor.BLACK;
+                ? ChessGame.TeamColor.BLACK
+                : ChessGame.TeamColor.WHITE;
+        var opponentUsername = opponentColor == ChessGame.TeamColor.WHITE
+                ? gameData.whiteUsername()
+                : gameData.blackUsername();
         if (gameData.game().isInCheckmate(opponentColor)) {
-            sendNotification(gameId, session, String.format("%s won", username));
+            sendNotification(gameId, null, String.format("%s won by checkmate", username));
             service.closeGame(gameId);
         } else if (gameData.game().isInStalemate(opponentColor)) {
-            sendNotification(gameId, session, username + " put the game in stalemate");
+            sendNotification(gameId, null, username + " put the game in stalemate");
             service.closeGame(gameId);
+        } else if (gameData.game().isInCheck(opponentColor)) {
+            sendNotification(gameId, null, opponentUsername + " is in check" );
         }
     }
 
@@ -162,7 +167,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             observers.get(gameId).broadcast(null, gson.toJson(loadGameMessage));
 
             sendNotification(gameId, ctx.session, assembleMovedString(username, gameData, move));
-            handleEndGame(newGameData, username, ctx.session);
+            handleEndGame(newGameData, username);
 
         } catch (Exception e) {
             ctx.session.getRemote().sendString(gson.toJson(
