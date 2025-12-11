@@ -113,13 +113,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 ? gameData.whiteUsername()
                 : gameData.blackUsername();
         if (gameData.game().isInCheckmate(opponentColor)) {
-            sendNotification(gameId, null, String.format("%s won by checkmate", username));
+            sendNotification(gameId, null, String.format("%s put %s in checkmate", username, opponentUsername));
             service.closeGame(gameId);
         } else if (gameData.game().isInStalemate(opponentColor)) {
-            sendNotification(gameId, null, username + " put the game in stalemate");
+            sendNotification(gameId, null, String.format("%s put %s in stalemate", username, opponentUsername));
             service.closeGame(gameId);
         } else if (gameData.game().isInCheck(opponentColor)) {
-            sendNotification(gameId, null, opponentUsername + " is in check" );
+            sendNotification(gameId, null, String.format("%s put %s in check", username, opponentUsername));
         }
     }
 
